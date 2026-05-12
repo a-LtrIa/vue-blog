@@ -34,3 +34,12 @@ coverage
 
 # Vitest
 __screenshots__/
+
+# Database
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Uploads
+server/uploads/*
+!server/uploads/.gitkeep

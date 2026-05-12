@@ -1,16 +1,23 @@
 {
-  "name": "my-blog",
+  "name": "blog-monorepo",
   "version": "1.0.0",
+  "private": true,
+  "description": "博客系统 - 包含前端、管理后台和后端服务",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "vue": "^3.4.0"
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:admin\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:admin": "cd admin && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build": "npm run build:client && npm run build:admin",
+    "build:client": "cd client && npm run build",
+    "build:admin": "cd admin && npm run build",
+    "start": "cd server && npm start",
+    "install:all": "npm install && cd client && npm install && cd ../admin && npm install && cd ../server && npm install"
   },
   "devDependencies": {
-    "vite": "^5.4.0",
-    "@vitejs/plugin-vue": "^5.2.0"
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
