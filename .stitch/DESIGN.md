@@ -1,0 +1,276 @@
+# 博客设计系统 - 玻璃拟态电影感
+
+## 设计概述
+
+一个融合玻璃拟态（Glassmorphism）、电影感（Cinematic）和 Bento-grid 布局的现代博客设计系统。强调透明层次、动态光影和精致的微交互。
+
+## 设计原则
+
+1. **玻璃拟态** - 半透明背景、背景模糊、微妙边框
+2. **电影感** - 戏剧性光影、渐变叠加、景深效果
+3. **Bento-grid** - 模块化卡片布局、大小不一的网格项
+4. **流畅动画** - 优雅的过渡、悬停效果、滚动动画
+
+## 色彩系统
+
+### 主色调
+- **Primary**: `#7877C6` - 紫罗兰色，用于强调
+- **Primary Glow**: `rgba(120, 119, 198, 0.6)` - 发光效果
+- **Secondary**: `#FF77C6` - 粉色调，用于点缀
+
+### 玻璃拟态色彩
+- **Glass Light**: `rgba(255, 255, 255, 0.1)` - 浅色玻璃
+- **Glass Medium**: `rgba(255, 255, 255, 0.05)` - 中等玻璃
+- **Glass Border**: `rgba(255, 255, 255, 0.15)` - 玻璃边框
+- **Glass Border Hover**: `rgba(255, 255, 255, 0.25)` - 悬停边框
+
+### 背景色
+- **Canvas Dark**: `#1a1a2e` - 深色画布
+- **Canvas Deep**: `#16213e` - 深蓝背景
+- **Gradient Start**: `rgba(120, 119, 198, 0.3)` - 渐变起点
+- **Gradient End**: `rgba(255, 119, 198, 0.2)` - 渐变终点
+
+### 文字色
+- **Text Primary**: `#ffffff` - 主文字
+- **Text Secondary**: `rgba(255, 255, 255, 0.85)` - 次要文字
+- **Text Muted**: `rgba(255, 255, 255, 0.6)` - 弱化文字
+- **Text Subtle**: `rgba(255, 255, 255, 0.4)` - 微妙文字
+
+## 字体系统
+
+### 字体族
+- **Display**: `"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
+- **Text**: `"SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
+- **Mono**: `"SF Mono", "Fira Code", monospace`
+
+### 字体规格
+| 名称 | 大小 | 字重 | 行高 | 字间距 |
+|------|------|------|------|--------|
+| Hero | 48px | 700 | 1.1 | -0.02em |
+| H1 | 40px | 600 | 1.2 | -0.02em |
+| H2 | 32px | 600 | 1.3 | -0.01em |
+| H3 | 24px | 600 | 1.4 | 0 |
+| Body Large | 18px | 400 | 1.6 | 0 |
+| Body | 16px | 400 | 1.6 | 0 |
+| Caption | 14px | 500 | 1.4 | 0.02em |
+| Small | 12px | 400 | 1.4 | 0.05em |
+
+## 玻璃拟态组件
+
+### 基础玻璃卡片
+```css
+.glass-morphism {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+```
+
+### 高级玻璃卡片（Hero）
+```css
+.glass-hero {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 40px;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+```
+
+### 玻璃按钮
+```css
+.glass-button {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 100px;
+  color: #ffffff;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+```
+
+## Bento Grid 布局
+
+### 网格定义
+```css
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(180px, auto);
+  gap: 20px;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .bento-grid { grid-template-columns: 1fr; }
+}
+```
+
+### 卡片尺寸
+- **span-2**: 跨越2列
+- **row-2**: 跨越2行
+- **标准**: 1列 x 自动高度
+
+## 动画系统
+
+### 缓动函数
+- **ease-smooth**: `cubic-bezier(0.16, 1, 0.3, 1)` - 平滑出场
+- **ease-bounce**: `cubic-bezier(0.34, 1.56, 0.64, 1)` - 弹性效果
+- **ease-in-out**: `cubic-bezier(0.4, 0, 0.2, 1)` - 标准缓动
+
+### 持续时间
+- **fast**: 150ms - 微交互
+- **normal**: 300ms - 标准过渡
+- **slow**: 500ms - 显著变化
+- **dramatic**: 1000ms - 戏剧性入场
+
+### 关键动画
+
+#### 渐变流动
+```css
+@keyframes gradientShift {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+/* duration: 20s, timing: ease-in-out, iteration: infinite */
+```
+
+#### 发光脉冲
+```css
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+/* duration: 4s, timing: ease-in-out, iteration: infinite */
+```
+
+#### 字符显现
+```css
+@keyframes charReveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* duration: 0.6s, timing: cubic-bezier(0.16, 1, 0.3, 1) */
+```
+
+#### 卡片入场
+```css
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* duration: 0.6s, timing: ease-out */
+```
+
+#### 玻璃闪光
+```css
+@keyframes shimmer {
+  0%, 100% { transform: translateX(-10%) translateY(-10%); }
+  50% { transform: translateX(10%) translateY(10%); }
+}
+/* duration: 8s, timing: ease-in-out, iteration: infinite */
+```
+
+## 电影感效果
+
+### 背景层次
+1. **基础图片** - loliapi ACG 背景
+2. **渐变叠加** - 紫粉渐变光晕
+3. **暗角效果** - 边缘暗化
+4. **噪点纹理** - 胶片质感
+
+### 景深效果
+```css
+.cinematic-bg {
+  transform: scale(1.1);
+  transition: transform 2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cinematic-bg.loaded {
+  transform: scale(1);
+}
+```
+
+### 粒子效果
+- 数量: 20个
+- 大小: 4px
+- 颜色: rgba(255, 255, 255, 0.5)
+- 动画: 向上漂浮
+
+## 交互模式
+
+### 悬停状态
+- 卡片: translateY(-4px) + 增强阴影
+- 按钮: translateY(-2px) scale(1.02) + 光泽滑动
+- 链接: 颜色过渡 + 下划线
+
+### 焦点状态
+- 轮廓: 2px solid rgba(120, 119, 198, 0.8)
+- 偏移: 2px
+- 过渡: 0.2s ease
+
+### 激活状态
+- 缩放: scale(0.98)
+- 过渡: 0.1s ease
+
+## 响应式断点
+
+- **Desktop**: > 1024px - 4列 Bento Grid
+- **Tablet**: 641px - 1024px - 2列 Bento Grid
+- **Mobile**: <= 640px - 1列 Bento Grid
+
+## 阴影系统
+
+### 玻璃阴影
+- **sm**: `0 4px 20px rgba(0, 0, 0, 0.2)`
+- **md**: `0 8px 32px rgba(0, 0, 0, 0.1)`
+- **lg**: `0 25px 50px -12px rgba(0, 0, 0, 0.25)`
+- **hover**: `0 20px 40px rgba(0, 0, 0, 0.15)`
+
+## 圆角系统
+
+- **sm**: 12px - 小卡片、按钮
+- **md**: 16px - 中等卡片
+- **lg**: 24px - 大卡片
+- **xl**: 40px - Hero 卡片
+- **full**: 9999px - 圆形元素
