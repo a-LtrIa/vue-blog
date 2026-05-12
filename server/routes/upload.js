@@ -10,7 +10,7 @@ import { existsSync, mkdirSync } from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const uploadsDir = join(__dirname, '..', '..', 'server', 'uploads')
+const uploadsDir = join(__dirname, '..', 'uploads')
 if (!existsSync(uploadsDir)) {
   mkdirSync(uploadsDir, { recursive: true })
 }

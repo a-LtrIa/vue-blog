@@ -1,6 +1,13 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  console.error('❌ ERROR: JWT_SECRET environment variable is not set!')
+  console.error('Please set JWT_SECRET in your environment variables or .env file')
+  console.error('Example: JWT_SECRET=your-super-secret-key-at-least-32-characters-long')
+  process.exit(1)
+}
 
 export const generateToken = (payload) => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
