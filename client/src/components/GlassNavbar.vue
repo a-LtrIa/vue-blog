@@ -1,7 +1,6 @@
 <template>
   <nav class="glass-navbar" :class="{ 'nav-scrolled': isScrolled, 'nav-hidden': isHidden }">
     <div class="nav-container">
-      <!-- Logo -->
       <a href="/" class="nav-logo" @click.prevent="goHome">
         <div class="logo-icon">
           <span class="logo-text">{{ logoText }}</span>
@@ -9,44 +8,26 @@
         <span class="logo-brand">{{ siteName }}</span>
       </a>
 
-      <!-- Desktop Navigation -->
-      <div class="nav-links">
-        <a
-          v-for="link in navLinks"
-          :key="link.path"
-          :href="link.path"
-          class="nav-link"
-          :class="{ active: isActive(link.path) }"
-          @click.prevent="navigate(link.path)"
-        >
-          <span class="link-icon" v-if="link.icon">{{ link.icon }}</span>
-          <span class="link-text">{{ link.name }}</span>
-          <span class="link-indicator"></span>
-        </a>
-      </div>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a
+            v-for="link in navLinks"
+            :key="link.path"
+            :href="link.path"
+            class="nav-link"
+            :class="{ active: isActive(link.path) }"
+            @click.prevent="navigate(link.path)"
+          >
+            <component :is="link.icon" :size="16" class="link-icon" />
+            <span class="link-text">{{ link.name }}</span>
+            <span class="link-indicator"></span>
+          </a>
+        </div>
 
-      <!-- Actions -->
-      <div class="nav-actions">
-        <!-- Search Button -->
-        <button class="action-btn" @click="toggleSearch" title="搜索">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
+        <button class="action-btn search-btn" @click="toggleSearch" title="搜索">
+          <Search :size="18" />
         </button>
 
-        <!-- Theme Toggle -->
-        <button class="action-btn" @click="toggleTheme" title="切换主题">
-          <svg v-if="isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"/>
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-          </svg>
-          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-        </button>
-
-        <!-- Mobile Menu Toggle -->
         <button class="action-btn mobile-menu-btn" @click="toggleMobileMenu" title="菜单">
           <div class="hamburger" :class="{ open: showMobileMenu }">
             <span></span>
@@ -57,7 +38,6 @@
       </div>
     </div>
 
-    <!-- Mobile Menu -->
     <transition name="mobile-menu">
       <div v-if="showMobileMenu" class="mobile-menu">
         <div class="mobile-menu-content">
@@ -69,46 +49,54 @@
             :class="{ active: isActive(link.path) }"
             @click.prevent="navigate(link.path)"
           >
-            <span class="mobile-link-icon" v-if="link.icon">{{ link.icon }}</span>
+            <component :is="link.icon" :size="18" class="mobile-link-icon" />
             <span class="mobile-link-text">{{ link.name }}</span>
           </a>
         </div>
       </div>
     </transition>
 
-    <!-- Search Modal -->
     <transition name="search-modal">
-      <div v-if="showSearch" class="search-modal" @click="closeSearch">
-        <div class="search-container" @click.stop>
-          <div class="search-input-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
+      <div v-if="showSearch" class="search-overlay" @click="closeSearch">
+        <div class="search-panel" @click.stop>
+          <div class="search-input-row">
+            <Search :size="18" class="search-panel-icon" />
             <input
               v-model="searchQuery"
               type="text"
               placeholder="搜索文章..."
-              class="search-input"
+              class="search-panel-input"
+              @input="handleSearchInput"
               @keyup.enter="performSearch"
+              @keydown.escape="closeSearch"
               ref="searchInput"
             />
-            <button class="search-close" @click="closeSearch">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6 6 18M6 6l12 12"/>
-              </svg>
-            </button>
+            <kbd class="search-kbd">esc</kbd>
           </div>
-          <div class="search-results" v-if="searchResults.length">
+          <div class="search-panel-results" v-if="searchResults.length">
             <div
-              v-for="result in searchResults"
+              v-for="(result, index) in searchResults"
               :key="result.id"
-              class="search-result-item"
+              class="search-panel-item"
+              :class="{ 'search-panel-item-active': index === selectedIndex }"
               @click="goToPost(result)"
+              @mouseenter="selectedIndex = index"
             >
-              <span class="result-title">{{ result.title }}</span>
-              <span class="result-category">{{ result.category_name }}</span>
+              <FileText :size="16" class="search-panel-item-icon" />
+              <div class="search-panel-item-content">
+                <span class="search-panel-item-title">{{ result.title }}</span>
+                <span class="search-panel-item-meta">
+                  <span v-if="result.category_name" class="search-panel-item-cat">{{ result.category_name }}</span>
+                  <span class="search-panel-item-date">{{ formatSearchDate(result.created_at) }}</span>
+                </span>
+              </div>
             </div>
+          </div>
+          <div class="search-panel-empty" v-else-if="searchQuery.trim()">
+            <span>未找到相关文章</span>
+          </div>
+          <div class="search-panel-hint" v-else>
+            <span>输入关键词搜索文章</span>
           </div>
         </div>
       </div>
@@ -119,7 +107,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { postsApi } from '../api/index.js'
+import { Home, FileText, Search } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -143,16 +131,13 @@ const showSearch = ref(false)
 const searchQuery = ref('')
 const searchResults = ref([])
 const searchInput = ref(null)
-const isDark = ref(true)
+const selectedIndex = ref(0)
 
 const logoText = computed(() => props.siteName.charAt(0).toUpperCase())
 
 const navLinks = [
-  { name: '首页', path: '/', icon: '🏠' },
-  { name: '文章', path: '/#posts', icon: '📝' },
-  { name: '分类', path: '/#categories', icon: '📂' },
-  { name: '标签', path: '/#tags', icon: '🏷️' },
-  { name: '关于', path: '/#about', icon: '👤' }
+  { name: '主页', path: '/', icon: Home },
+  { name: '文章', path: '/articles', icon: FileText }
 ]
 
 const isActive = (path) => {
@@ -204,42 +189,39 @@ const closeSearch = () => {
   showSearch.value = false
   searchQuery.value = ''
   searchResults.value = []
+  selectedIndex.value = 0
 }
 
-const performSearch = async () => {
+const formatSearchDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+}
+
+const performSearch = () => {
   if (!searchQuery.value.trim()) return
-  
-  // 本地搜索
+
   const query = searchQuery.value.toLowerCase()
-  searchResults.value = props.posts.filter(post => 
+  searchResults.value = props.posts.filter(post =>
     post.title.toLowerCase().includes(query) ||
     post.excerpt?.toLowerCase().includes(query) ||
     post.content?.toLowerCase().includes(query)
   ).slice(0, 5)
 }
 
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  // 这里可以添加主题切换逻辑
-}
-
 const handleScroll = () => {
   const currentScrollY = window.scrollY
-  
-  // 检测滚动方向
+
   if (currentScrollY > lastScrollY.value && currentScrollY > 100) {
     isHidden.value = true
   } else {
     isHidden.value = false
   }
-  
-  // 检测是否滚动超过阈值
+
   isScrolled.value = currentScrollY > 50
-  
   lastScrollY.value = currentScrollY
 }
 
-// 监听搜索输入
 let searchTimeout
 const handleSearchInput = () => {
   clearTimeout(searchTimeout)
@@ -264,7 +246,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   z-index: 1000;
-  padding: 16px 0;
+  padding: 14px 0;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   transform: translateY(0);
 }
@@ -298,6 +280,7 @@ onUnmounted(() => {
   text-decoration: none;
   color: #ffffff;
   transition: opacity 0.2s ease;
+  flex-shrink: 0;
 }
 
 .nav-logo:hover {
@@ -305,23 +288,20 @@ onUnmounted(() => {
 }
 
 .logo-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logo-text {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.7) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .logo-brand {
@@ -330,10 +310,17 @@ onUnmounted(() => {
   letter-spacing: -0.02em;
 }
 
+/* Right Section */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Navigation Links */
 .nav-links {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
 }
 
@@ -341,49 +328,39 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  color: rgba(255, 255, 255, 0.7);
+  gap: 7px;
+  padding: 8px 16px;
+  color: rgba(255, 255, 255, 0.6);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  overflow: hidden;
+  border-radius: 8px;
+  transition: all 0.25s ease;
 }
 
-.nav-link::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.1);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.nav-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.nav-link:hover::before,
-.nav-link.active::before {
-  opacity: 1;
-}
-
-.nav-link:hover,
 .nav-link.active {
   color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .link-icon {
-  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .link-indicator {
   position: absolute;
-  bottom: 4px;
+  bottom: 2px;
   left: 50%;
   transform: translateX(-50%) scaleX(0);
-  width: 20px;
-  height: 3px;
-  background: #ffffff;
-  border-radius: 2px;
+  width: 16px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 1px;
   transition: transform 0.3s ease;
 }
 
@@ -391,42 +368,32 @@ onUnmounted(() => {
   transform: translateX(-50%) scaleX(1);
 }
 
-/* Actions */
-.nav-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
+/* Action Buttons */
 .action-btn {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
-.action-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-/* Hamburger Menu */
+/* Hamburger */
 .hamburger {
-  width: 18px;
-  height: 14px;
+  width: 16px;
+  height: 12px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -438,12 +405,12 @@ onUnmounted(() => {
   width: 100%;
   height: 2px;
   background: currentColor;
-  border-radius: 2px;
+  border-radius: 1px;
   transition: all 0.3s ease;
 }
 
 .hamburger.open span:nth-child(1) {
-  transform: rotate(45deg) translate(4px, 4px);
+  transform: rotate(45deg) translate(3px, 3px);
 }
 
 .hamburger.open span:nth-child(2) {
@@ -451,7 +418,7 @@ onUnmounted(() => {
 }
 
 .hamburger.open span:nth-child(3) {
-  transform: rotate(-45deg) translate(4px, -4px);
+  transform: rotate(-45deg) translate(3px, -3px);
 }
 
 .mobile-menu-btn {
@@ -470,22 +437,22 @@ onUnmounted(() => {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 .mobile-menu-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .mobile-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  color: rgba(255, 255, 255, 0.8);
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-size: 15px;
   border-radius: 10px;
@@ -499,7 +466,12 @@ onUnmounted(() => {
 }
 
 .mobile-link-icon {
-  font-size: 18px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mobile-link.active .mobile-link-icon {
+  color: #ffffff;
 }
 
 .mobile-menu-enter-active,
@@ -513,131 +485,171 @@ onUnmounted(() => {
   transform: translateY(-10px);
 }
 
-/* Search Modal */
-.search-modal {
+/* Search Overlay - Apple Spotlight Style */
+.search-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 2000;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
-  padding-top: 120px;
+  padding-top: 18vh;
 }
 
-.search-container {
+.search-panel {
   width: 100%;
-  max-width: 600px;
+  max-width: 560px;
   margin: 0 24px;
+  background: rgba(30, 30, 40, 0.92);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 25px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  height: fit-content;
 }
 
-.search-input-wrapper {
+.search-input-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: rgba(30, 30, 40, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.search-icon {
-  width: 20px;
-  height: 20px;
-  color: rgba(255, 255, 255, 0.5);
+.search-panel-icon {
+  color: rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
 }
 
-.search-input {
+.search-panel-input {
   flex: 1;
   background: transparent;
   border: none;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 400;
   outline: none;
+  letter-spacing: -0.01em;
 }
 
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+.search-panel-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.search-close {
-  width: 32px;
-  height: 32px;
-  display: flex;
+.search-kbd {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.search-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.search-close svg {
-  width: 16px;
-  height: 16px;
-}
-
-.search-results {
-  margin-top: 12px;
-  background: rgba(30, 30, 40, 0.9);
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 
-.search-result-item {
+.search-panel-results {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.search-panel-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 18px;
   cursor: pointer;
-  transition: background 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.15s ease;
 }
 
-.search-result-item:last-child {
-  border-bottom: none;
+.search-panel-item:hover,
+.search-panel-item-active {
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.search-result-item:hover {
+.search-panel-item + .search-panel-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.search-panel-item-icon {
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.search-panel-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-panel-item-title {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-panel-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.search-panel-item-cat {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 2px 8px;
   background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
-.result-title {
-  font-size: 15px;
-  color: #ffffff;
+.search-panel-item-date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.result-category {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 100px;
+.search-panel-empty,
+.search-panel-hint {
+  padding: 32px 18px;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.search-modal-enter-active,
+.search-modal-enter-active {
+  transition: all 0.25s ease;
+}
+
 .search-modal-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.search-modal-enter-from,
+.search-modal-enter-from {
+  opacity: 0;
+}
+
+.search-modal-enter-from .search-panel {
+  transform: translateY(-12px) scale(0.97);
+}
+
 .search-modal-leave-to {
   opacity: 0;
 }
 
-.search-modal-enter-from .search-container,
-.search-modal-leave-to .search-container {
-  transform: translateY(-20px);
+.search-modal-leave-to .search-panel {
+  transform: translateY(-8px) scale(0.98);
 }
 
 /* Responsive */
@@ -650,33 +662,8 @@ onUnmounted(() => {
     display: flex;
   }
 
-  .logo-brand {
-    display: none;
-  }
-
-  .nav-container {
-    padding: 0 16px;
-  }
-
-  .mobile-menu {
-    left: 16px;
-    right: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .glass-navbar {
-    padding: 12px 0;
-  }
-
-  .action-btn {
-    width: 36px;
-    height: 36px;
-  }
-
-  .logo-icon {
-    width: 36px;
-    height: 36px;
+  .search-btn {
+    display: flex;
   }
 }
 </style>

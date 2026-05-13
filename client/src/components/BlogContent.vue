@@ -43,7 +43,7 @@
           <!-- Site Info Card -->
           <div class="sidebar-card site-info">
             <h3 class="card-title">
-              <span class="title-icon">✨</span>
+              <Info class="title-icon" :size="16" />
               关于本站
             </h3>
             <div class="site-detail">
@@ -65,12 +65,12 @@
           <!-- Social Links Card -->
           <div class="sidebar-card social-section" v-if="socialLinks.length">
             <h3 class="card-title">
-              <span class="title-icon">🔗</span>
+              <Link2 class="title-icon" :size="16" />
               关注我
             </h3>
             <div class="social-grid">
               <a v-for="link in socialLinks.slice(0, 6)" :key="link.id" :href="link.url" target="_blank" class="social-item">
-                <span class="social-icon">{{ link.icon }}</span>
+                <component :is="getSocialIcon(link.platform)" :size="22" class="social-icon" />
                 <span class="social-name">{{ link.platform }}</span>
               </a>
             </div>
@@ -79,7 +79,7 @@
           <!-- Hot Tags Card -->
           <div class="sidebar-card tags-section">
             <h3 class="card-title">
-              <span class="title-icon">🏷️</span>
+              <Tag class="title-icon" :size="16" />
               热门标签
             </h3>
             <div class="tag-cloud">
@@ -91,20 +91,58 @@
         </div>
       </aside>
 
-      <!-- Right Content: Categories & Posts -->
+      <!-- Right Content: Grid Layout or Post Reading -->
       <main class="right-content">
+        <!-- Post Reading View -->
+        <div v-if="selectedPost" class="post-reading-view">
+          <button class="back-btn" @click="closePost">
+            <ArrowLeft :size="20" />
+            <span>返回列表</span>
+          </button>
+
+          <article class="reading-article">
+            <header class="reading-header">
+              <div class="reading-meta">
+                <span class="reading-category" v-if="postContent.category_name">{{ postContent.category_name }}</span>
+                <time class="reading-date">{{ formatDate(postContent.created_at) }}</time>
+                <span class="reading-views">
+                  <Eye :size="14" />
+                  {{ postContent.view_count || 0 }}
+                </span>
+              </div>
+              <h1 class="reading-title">{{ postContent.title }}</h1>
+              <div class="reading-tags" v-if="postContent.tags && postContent.tags.length">
+                <span v-for="tag in postContent.tags" :key="tag.id || tag" class="reading-tag">
+                  {{ tag.name || tag }}
+                </span>
+              </div>
+            </header>
+
+            <div class="reading-body" v-html="renderedContent"></div>
+
+            <footer class="reading-footer">
+              <div class="reading-author">
+                <img :src="settings.avatar_url || defaultAvatar" alt="作者" class="reading-author-avatar" />
+                <div class="reading-author-info">
+                  <span class="reading-author-name">{{ settings.author_name || '作者' }}</span>
+                  <span class="reading-author-bio">{{ settings.author_bio || '热爱技术与设计' }}</span>
+                </div>
+              </div>
+            </footer>
+          </article>
+        </div>
+
+        <!-- Default Grid View -->
+        <template v-else>
         <!-- Welcome Banner -->
         <div class="welcome-banner">
           <div class="welcome-text">
             <h1 class="welcome-title">探索技术与设计</h1>
             <p class="welcome-desc">分享前端开发、UI 设计和生活中的点滴思考</p>
           </div>
-          <div class="welcome-decoration">
-            <div class="deco-circle"></div>
-          </div>
         </div>
 
-        <!-- Categories Section -->
+        <!-- Categories Grid -->
         <section class="content-section categories-area">
           <div class="section-header">
             <h3 class="section-title">
@@ -112,57 +150,56 @@
               文章分类
             </h3>
           </div>
-          <div class="categories-list">
-            <div v-for="category in categories" :key="category.id" class="category-item">
+          <div class="categories-grid">
+            <div v-for="category in categories" :key="category.id" class="category-card" @click="goToCategory(category)">
               <div class="category-icon-wrap">
-                <span class="category-icon">{{ getCategoryIcon(category.name) }}</span>
+                <component :is="getCategoryIcon(category.name)" :size="24" />
               </div>
               <div class="category-info">
                 <span class="category-name">{{ category.name }}</span>
-                <span class="category-count">{{ category.post_count || 0 }} 篇文章</span>
-              </div>
-              <div class="category-arrow">→</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Featured Post -->
-        <section class="content-section featured-area" v-if="posts[0]">
-          <div class="section-header">
-            <h3 class="section-title">
-              <span class="title-dot featured"></span>
-              精选文章
-            </h3>
-          </div>
-          <div class="featured-card-large" @click="viewPost(posts[0])">
-            <div class="featured-image" v-if="posts[0].cover_image">
-              <img :src="posts[0].cover_image" :alt="posts[0].title" />
-            </div>
-            <div class="featured-content">
-              <div class="featured-meta">
-                <span class="featured-category">{{ posts[0].category_name }}</span>
-                <span class="featured-date">{{ formatDate(posts[0].created_at) }}</span>
-              </div>
-              <h2 class="featured-title">{{ posts[0].title }}</h2>
-              <p class="featured-excerpt">{{ posts[0].excerpt || posts[0].content?.substring(0, 200) + '...' }}</p>
-              <div class="featured-footer">
-                <span class="read-more">阅读全文 →</span>
+                <span class="category-count">{{ category.post_count || 0 }} 篇</span>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- Posts List -->
+        <!-- Posts Grid - Masonry Style -->
         <section class="content-section posts-area">
           <div class="section-header">
             <h3 class="section-title">
               <span class="title-dot"></span>
               最新文章
             </h3>
-            <a href="#" class="view-all">查看全部 →</a>
+            <a href="#" class="view-all" @click.prevent="goToArticles">查看全部 →</a>
           </div>
 
-          <div class="posts-grid">
+          <div class="posts-masonry">
+            <!-- Featured Post (Large) -->
+            <article class="post-card post-featured" v-if="posts[0]" @click="viewPost(posts[0])">
+              <div class="post-image" v-if="posts[0].cover_image">
+                <img :src="posts[0].cover_image" :alt="posts[0].title" />
+                <span class="post-badge">精选</span>
+              </div>
+              <div class="post-content">
+                <div class="post-meta">
+                  <span class="post-category" v-if="posts[0].category_name">{{ posts[0].category_name }}</span>
+                  <time class="post-date">{{ formatDate(posts[0].created_at) }}</time>
+                </div>
+                <h4 class="post-title">{{ posts[0].title }}</h4>
+                <p class="post-excerpt">{{ posts[0].excerpt || posts[0].content?.substring(0, 150) + '...' }}</p>
+                <div class="post-footer">
+                  <span class="post-views">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    {{ posts[0].view_count || 0 }}
+                  </span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Regular Posts -->
             <article class="post-card" v-for="post in posts.slice(1, 7)" :key="post.id" @click="viewPost(post)">
               <div class="post-image" v-if="post.cover_image">
                 <img :src="post.cover_image" :alt="post.title" />
@@ -173,7 +210,7 @@
                   <time class="post-date">{{ formatDate(post.created_at) }}</time>
                 </div>
                 <h4 class="post-title">{{ post.title }}</h4>
-                <p class="post-excerpt">{{ post.excerpt || post.content?.substring(0, 120) + '...' }}</p>
+                <p class="post-excerpt">{{ post.excerpt || post.content?.substring(0, 100) + '...' }}</p>
                 <div class="post-footer">
                   <span class="post-views">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -188,10 +225,11 @@
           </div>
 
           <div v-if="posts.length === 0" class="empty-state">
-            <span class="empty-icon">📝</span>
+            <FileText class="empty-icon" :size="48" />
             <p>暂无文章，敬请期待...</p>
           </div>
         </section>
+        </template>
       </main>
     </div>
 
@@ -206,6 +244,32 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { marked } from 'marked'
+import { postsApi } from '../api/index.js'
+import {
+  Info,
+  Link2,
+  Tag,
+  Code2,
+  Server,
+  Palette,
+  Smartphone,
+  BarChart3,
+  Box,
+  Wrench,
+  Sun,
+  PenLine,
+  FileText,
+  Github,
+  Twitter,
+  MessageCircle,
+  Mail,
+  Globe,
+  Rss,
+  MessageSquare,
+  ArrowLeft,
+  Eye
+} from 'lucide-vue-next'
 
 const router = useRouter()
 
@@ -222,19 +286,25 @@ const leftSidebarRef = ref(null)
 const sidebarInnerRef = ref(null)
 const mainLayoutRef = ref(null)
 
-// 计算总浏览量
+const selectedPost = ref(null)
+const postContent = ref({})
+const isLoadingPost = ref(false)
+
+const renderedContent = computed(() => {
+  if (!postContent.value.content) return ''
+  return marked(postContent.value.content)
+})
+
 const totalViews = computed(() => {
   return props.posts.reduce((sum, post) => sum + (post.view_count || 0), 0)
 })
 
-// 计算运行天数
 const runningDays = computed(() => {
   const startDate = new Date('2024-01-01')
   const now = new Date()
   return Math.floor((now - startDate) / (1000 * 60 * 60 * 24))
 })
 
-// 最后更新时间
 const lastUpdate = computed(() => {
   if (props.posts.length === 0) return '-'
   const latest = props.posts[0]
@@ -243,19 +313,43 @@ const lastUpdate = computed(() => {
 })
 
 const categoryIcons = {
-  '前端': '💻',
-  '后端': '⚙️',
-  '设计': '🎨',
-  '产品': '📱',
-  '运营': '📊',
-  '其他': '📦',
-  '技术': '🔧',
-  '生活': '🌟',
-  '随笔': '✍️'
+  '前端': Code2,
+  '后端': Server,
+  '设计': Palette,
+  '产品': Smartphone,
+  '运营': BarChart3,
+  '其他': Box,
+  '技术': Wrench,
+  '生活': Sun,
+  '随笔': PenLine
 }
 
 const getCategoryIcon = (name) => {
-  return categoryIcons[name] || '📄'
+  return categoryIcons[name] || FileText
+}
+
+const socialIconMap = {
+  'GitHub': Github,
+  'github': Github,
+  'Twitter': Twitter,
+  'twitter': Twitter,
+  'X': Twitter,
+  '微信': MessageCircle,
+  'WeChat': MessageCircle,
+  'Email': Mail,
+  'email': Mail,
+  '邮箱': Mail,
+  'Website': Globe,
+  'website': Globe,
+  '网站': Globe,
+  'RSS': Rss,
+  'rss': Rss,
+  'Discord': MessageSquare,
+  'discord': MessageSquare
+}
+
+const getSocialIcon = (platform) => {
+  return socialIconMap[platform] || Globe
 }
 
 const formatDate = (dateStr) => {
@@ -268,39 +362,58 @@ const handleAvatarError = (e) => {
   e.target.src = defaultAvatar
 }
 
-const viewPost = (post) => {
-  router.push(`/post/${post.slug}`)
+const viewPost = async (post) => {
+  selectedPost.value = post
+  isLoadingPost.value = true
+  try {
+    const res = await postsApi.getBySlug(post.slug)
+    postContent.value = res.data
+  } catch (error) {
+    console.error('加载文章失败', error)
+    postContent.value = post
+  } finally {
+    isLoadingPost.value = false
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 智能粘性效果
+const closePost = () => {
+  selectedPost.value = null
+  postContent.value = {}
+}
+
+const goToArticles = () => {
+  router.push('/articles')
+}
+
+const goToCategory = (category) => {
+  router.push(`/articles?category=${encodeURIComponent(category.name)}`)
+}
+
+// 同步滚动效果 - 左右两侧完全同步
 const handleScroll = () => {
   if (!leftSidebarRef.value || !sidebarInnerRef.value || !mainLayoutRef.value) return
 
-  const sidebar = leftSidebarRef.value
   const sidebarInner = sidebarInnerRef.value
   const layout = mainLayoutRef.value
 
-  const layoutRect = layout.getBoundingClientRect()
-  const sidebarRect = sidebar.getBoundingClientRect()
   const sidebarHeight = sidebarInner.offsetHeight
-  const viewportHeight = window.innerHeight
-  const navHeight = 80 // 导航栏高度
-
-  // 计算右侧内容高度
   const rightContent = layout.querySelector('.right-content')
   const rightHeight = rightContent ? rightContent.offsetHeight : 0
 
-  // 只有当左侧内容比右侧短，且比视口高时才需要粘性效果
-  if (sidebarHeight < rightHeight && sidebarHeight > viewportHeight - navHeight - 40) {
+  // 只有当右侧内容比左侧高时才需要同步滚动
+  if (rightHeight > sidebarHeight) {
     const scrollTop = window.scrollY
     const layoutTop = layout.offsetTop
-    const maxScroll = rightHeight - sidebarHeight + 40
+    const navHeight = 100
+    const maxTranslate = rightHeight - sidebarHeight
 
-    // 当滚动到布局区域时开始计算
+    // 计算当前滚动在布局区域内的进度
     if (scrollTop > layoutTop - navHeight) {
-      const scrollInLayout = scrollTop - layoutTop + navHeight
-      const translateY = Math.min(Math.max(scrollInLayout * 0.5, 0), maxScroll)
-      sidebarInner.style.transform = `translateY(-${translateY}px)`
+      const scrollProgress = (scrollTop - layoutTop + navHeight) / (rightHeight - window.innerHeight + navHeight + 100)
+      const clampedProgress = Math.max(0, Math.min(1, scrollProgress))
+      const translateY = clampedProgress * maxTranslate
+      sidebarInner.style.transform = `translateY(${translateY}px)`
     } else {
       sidebarInner.style.transform = 'translateY(0)'
     }
@@ -311,7 +424,8 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
-  handleScroll()
+  // 初始化时执行一次
+  setTimeout(handleScroll, 100)
 })
 
 onUnmounted(() => {
@@ -320,88 +434,73 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ===== CSS Variables - 简洁配色 ===== */
+:root {
+  --bg-primary: #1a1a1a;
+  --bg-card: rgba(40, 40, 40, 0.8);
+  --bg-hover: rgba(50, 50, 50, 0.9);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --accent: rgba(255, 255, 255, 0.9);
+}
+
 .blog-content {
   min-height: 100vh;
-  color: #ffffff;
-  padding-top: 100px; /* 为导航栏留出空间 */
+  color: var(--text-primary);
+  padding-top: 100px;
 }
 
 /* ===== Main Layout ===== */
 .main-layout {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 60px 24px 40px;
+  padding: 40px 24px;
   display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 40px;
+  grid-template-columns: 320px 1fr;
+  gap: 32px;
   align-items: start;
 }
 
 /* ===== Left Sidebar ===== */
 .left-sidebar {
   position: relative;
-  overflow: hidden;
 }
 
 .sidebar-inner {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   will-change: transform;
-  transition: transform 0.1s linear;
 }
 
 .sidebar-card {
-  background: rgba(25, 25, 35, 0.7);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
-  padding: 28px;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
 }
 
 .sidebar-card:hover {
-  background: rgba(30, 30, 45, 0.8);
-  border-color: rgba(255, 255, 255, 0.18);
-  transform: translateY(-2px);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
 }
 
 /* Profile Section */
 .profile-section {
   text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.profile-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.2) 100%);
-  opacity: 0.5;
-}
-
-.profile-header {
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
 }
 
 .avatar-wrap {
   position: relative;
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 20px;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 16px;
 }
 
 .profile-avatar {
@@ -409,139 +508,109 @@ onUnmounted(() => {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+  border: 3px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .profile-avatar:hover {
-  transform: scale(1.05);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.15);
+  border-color: var(--border-hover);
+  transform: scale(1.02);
 }
 
 .online-indicator {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-  border: 3px solid rgba(25, 25, 35, 0.9);
+  bottom: 6px;
+  right: 6px;
+  width: 14px;
+  height: 14px;
+  background: #22c55e;
+  border: 3px solid var(--bg-card);
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
-  animation: pulse-indicator 2s ease-in-out infinite;
-}
-
-@keyframes pulse-indicator {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
-}
-
-.profile-titles {
-  margin-bottom: 16px;
 }
 
 .profile-name {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0 0 6px 0;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
 }
 
 .profile-role {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
 .profile-bio {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.7;
-  margin: 0 0 24px 0;
-  padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 16px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  gap: 4px;
+  padding: 14px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .stat-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .stat-num {
-  font-size: 24px;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .stat-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
 /* Card Title */
 .card-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.9);
+  gap: 8px;
+  color: var(--text-primary);
 }
 
 .title-icon {
-  font-size: 18px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 /* Site Info */
 .site-detail {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .detail-item:last-child {
@@ -549,429 +618,265 @@ onUnmounted(() => {
 }
 
 .detail-label {
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .detail-value {
-  color: #ffffff;
-  font-weight: 600;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 /* Social Grid */
 .social-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .social-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  gap: 6px;
+  padding: 14px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
   text-decoration: none;
-  color: #ffffff;
+  color: var(--text-primary);
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .social-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
 }
 
 .social-icon {
-  font-size: 24px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .social-name {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 /* Tag Cloud */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tag-item {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
   border-radius: 100px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 500;
 }
 
 .tag-item:hover {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.4);
-  color: #ffffff;
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
-.tag-size-1 { font-size: 12px; }
-.tag-size-2 { font-size: 14px; background: rgba(255, 255, 255, 0.1); }
-.tag-size-3 { font-size: 13px; background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3); }
+.tag-size-1 { font-size: 11px; }
+.tag-size-2 { font-size: 13px; background: rgba(255, 255, 255, 0.08); }
+.tag-size-3 { font-size: 12px; }
 
 /* ===== Right Content ===== */
 .right-content {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 }
 
 /* Welcome Banner */
 .welcome-banner {
-  position: relative;
-  padding: 48px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(20, 20, 35, 0.4) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.welcome-banner::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-20px, -20px) scale(1.1); }
-}
-
-.welcome-text {
-  position: relative;
-  z-index: 1;
+  padding: 36px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
 }
 
 .welcome-title {
-  font-size: 36px;
-  font-weight: 800;
-  margin: 0 0 16px 0;
-  background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 50%, #a78bfa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
 .welcome-desc {
-  font-size: 17px;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 16px;
+  color: var(--text-secondary);
   margin: 0;
-  max-width: 500px;
-  line-height: 1.7;
-}
-
-.welcome-decoration {
-  position: absolute;
-  top: 50%;
-  right: 60px;
-  transform: translateY(-50%);
-  width: 120px;
-  height: 120px;
-  opacity: 0.6;
-}
-
-.deco-circle {
-  width: 100%;
-  height: 100%;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  animation: rotate-slow 20s linear infinite;
-  position: relative;
-}
-
-.deco-circle::before {
-  content: '';
-  position: absolute;
-  inset: 20px;
-  border: 2px dashed rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
-  animation: rotate-slow 15s linear infinite reverse;
-}
-
-@keyframes rotate-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  line-height: 1.6;
 }
 
 /* Content Section */
 .content-section {
-  background: rgba(25, 25, 35, 0.5);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 28px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .section-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: rgba(255, 255, 255, 0.95);
+  gap: 10px;
+  color: var(--text-primary);
 }
 
 .title-dot {
-  width: 10px;
-  height: 10px;
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  width: 8px;
+  height: 8px;
+  background: var(--text-primary);
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(96, 165, 250, 0.5);
-}
-
-.title-dot.featured {
-  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
-  box-shadow: 0 0 16px rgba(244, 114, 182, 0.6);
 }
 
 .view-all {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  color: var(--text-muted);
   text-decoration: none;
   transition: all 0.3s ease;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .view-all:hover {
-  color: #ffffff;
-  transform: translateX(4px);
+  color: var(--text-primary);
 }
 
-/* Categories List */
-.categories-list {
+/* Categories Grid */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.category-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 16px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.category-item {
+.category-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+}
+
+.category-card .category-icon-wrap {
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 18px 24px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
 }
 
-.category-item:hover {
+.category-card:hover .category-icon-wrap {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateX(8px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: var(--text-primary);
+  transform: scale(1.1);
 }
 
-.category-icon-wrap {
-  width: 52px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
-  border-radius: 14px;
-  font-size: 26px;
-  transition: all 0.3s ease;
+.category-card .category-info {
+  text-align: center;
 }
 
-.category-item:hover .category-icon-wrap {
-  transform: scale(1.1) rotate(5deg);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.3) 100%);
+.category-card .category-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 
-.category-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.category-name {
-  font-size: 17px;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.category-count {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.category-arrow {
-  font-size: 20px;
-  color: rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-}
-
-.category-item:hover .category-arrow {
-  transform: translateX(6px);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* Featured Card Large */
-.featured-card-large {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.featured-card-large:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.featured-image {
-  position: relative;
-  overflow: hidden;
-  min-height: 280px;
-}
-
-.featured-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.featured-card-large:hover .featured-image img {
-  transform: scale(1.08);
-}
-
-.featured-content {
-  padding: 36px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.featured-meta {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  align-items: center;
-}
-
-.featured-category {
-  padding: 6px 14px;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
-  border: 1px solid rgba(244, 114, 182, 0.3);
-  border-radius: 100px;
+.category-card .category-count {
   font-size: 12px;
-  color: #f9a8d4;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
-.featured-date {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.featured-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-  line-height: 1.4;
-  color: #ffffff;
-}
-
-.featured-excerpt {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.8;
-  margin: 0 0 24px 0;
-}
-
-.featured-footer {
-  margin-top: auto;
-}
-
-.read-more {
-  font-size: 15px;
-  color: #60a5fa;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-.featured-card-large:hover .read-more {
-  color: #93c5fd;
-  transform: translateX(4px);
-}
-
-/* Posts Grid */
-.posts-grid {
+/* Posts Masonry Grid */
+.posts-masonry {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(200px, auto);
+  gap: 20px;
 }
 
 .post-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .post-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-hover);
+  transform: translateY(-4px);
+}
+
+/* Featured Post - Spans 2 columns and 2 rows */
+.post-featured {
+  grid-column: span 2;
+  grid-row: span 2;
+  flex-direction: row;
+}
+
+.post-featured .post-image {
+  width: 60%;
+  height: auto;
+  min-height: 100%;
+}
+
+.post-featured .post-content {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.post-featured .post-title {
+  font-size: 22px;
+}
+
+.post-featured .post-excerpt {
+  font-size: 14px;
+  -webkit-line-clamp: 4;
 }
 
 .post-image {
@@ -980,60 +885,62 @@ onUnmounted(() => {
   position: relative;
 }
 
-.post-image::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.post-card:hover .post-image::after {
-  opacity: 1;
-}
-
 .post-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s ease;
 }
 
 .post-card:hover .post-image img {
-  transform: scale(1.08);
+  transform: scale(1.05);
+}
+
+.post-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 100px;
 }
 
 .post-content {
-  padding: 24px;
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .post-meta {
   display: flex;
-  gap: 14px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
   align-items: center;
 }
 
 .post-category {
-  font-size: 12px;
-  color: #60a5fa;
+  font-size: 11px;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-weight: 500;
 }
 
 .post-date {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .post-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
   line-height: 1.5;
-  color: #ffffff;
+  color: var(--text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1041,98 +948,112 @@ onUnmounted(() => {
 }
 
 .post-excerpt {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.55);
-  line-height: 1.7;
-  margin: 0 0 18px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex: 1;
 }
 
 .post-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
 }
 
 .post-views {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .post-views svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: 60px 20px;
+  grid-column: 1 / -1;
 }
 
 .empty-icon {
-  font-size: 56px;
-  margin-bottom: 20px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
   display: block;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .empty-state p {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 15px;
+  color: var(--text-muted);
 }
 
 /* Footer */
 .site-footer {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 60px 24px 40px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 48px 24px 32px;
+  border-top: 1px solid var(--border-color);
   text-align: center;
 }
 
 .copyright {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 10px 0;
-  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 8px 0;
 }
 
 .credit {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  color: var(--text-muted);
   margin: 0;
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 1200px) {
   .main-layout {
-    grid-template-columns: 300px 1fr;
-    gap: 32px;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
   }
 
-  .welcome-banner {
-    padding: 36px;
+  .posts-masonry {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .welcome-title {
-    font-size: 28px;
+  .post-featured {
+    grid-column: span 2;
+    grid-row: span 1;
+    flex-direction: column;
+  }
+
+  .post-featured .post-image,
+  .post-featured .post-content {
+    width: 100%;
+  }
+
+  .post-featured .post-image {
+    height: 200px;
+    min-height: auto;
   }
 }
 
 @media (max-width: 1024px) {
   .main-layout {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 32px;
   }
 
   .left-sidebar {
@@ -1152,16 +1073,8 @@ onUnmounted(() => {
     grid-template-columns: repeat(4, 1fr);
   }
 
-  .featured-card-large {
-    grid-template-columns: 1fr;
-  }
-
-  .featured-image {
-    min-height: 220px;
-  }
-
-  .welcome-decoration {
-    display: none;
+  .categories-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
 
@@ -1171,45 +1084,312 @@ onUnmounted(() => {
   }
 
   .main-layout {
-    padding: 30px 16px;
-    gap: 30px;
+    padding: 24px 16px;
+    gap: 24px;
   }
 
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .posts-grid {
+  .posts-masonry {
     grid-template-columns: 1fr;
   }
 
+  .post-featured {
+    grid-column: span 1;
+  }
+
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .welcome-banner {
-    padding: 28px;
-    border-radius: 20px;
+    padding: 24px;
   }
 
   .welcome-title {
     font-size: 24px;
   }
 
-  .welcome-desc {
-    font-size: 15px;
-  }
-
   .content-section {
-    padding: 24px;
-    border-radius: 20px;
-  }
-
-  .featured-content {
-    padding: 24px;
-  }
-
-  .featured-title {
-    font-size: 20px;
+    padding: 20px;
   }
 
   .sidebar-card {
+    padding: 20px;
+  }
+}
+
+/* ===== Post Reading View ===== */
+.post-reading-view {
+  animation: fadeSlideIn 0.35s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  margin-bottom: 24px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.back-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  transform: translateX(-4px);
+}
+
+.reading-article {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.reading-header {
+  padding: 48px 48px 32px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.reading-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.reading-category {
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reading-date {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.reading-views {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.reading-title {
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.reading-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reading-tag {
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 100px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.reading-body {
+  padding: 48px;
+  font-size: 16px;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.reading-body :deep(h1),
+.reading-body :deep(h2),
+.reading-body :deep(h3),
+.reading-body :deep(h4) {
+  color: var(--text-primary);
+  margin-top: 40px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.reading-body :deep(h1) { font-size: 26px; }
+.reading-body :deep(h2) { font-size: 22px; }
+.reading-body :deep(h3) { font-size: 18px; }
+.reading-body :deep(h4) { font-size: 16px; }
+
+.reading-body :deep(p) {
+  margin-bottom: 20px;
+}
+
+.reading-body :deep(a) {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.reading-body :deep(a:hover) {
+  color: var(--text-primary);
+}
+
+.reading-body :deep(code) {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.reading-body :deep(pre) {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  overflow-x: auto;
+  margin: 24px 0;
+}
+
+.reading-body :deep(pre code) {
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.reading-body :deep(ul),
+.reading-body :deep(ol) {
+  margin-bottom: 20px;
+  padding-left: 24px;
+}
+
+.reading-body :deep(li) {
+  margin-bottom: 8px;
+}
+
+.reading-body :deep(blockquote) {
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 0 4px 20px;
+  margin: 24px 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+.reading-body :deep(img) {
+  max-width: 100%;
+  border-radius: 12px;
+  margin: 24px 0;
+}
+
+.reading-body :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+}
+
+.reading-body :deep(th),
+.reading-body :deep(td) {
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.reading-body :deep(th) {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reading-body :deep(hr) {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 32px 0;
+}
+
+.reading-footer {
+  padding: 32px 48px;
+  border-top: 1px solid var(--border-color);
+}
+
+.reading-author {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.reading-author-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+}
+
+.reading-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reading-author-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reading-author-bio {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .reading-header {
+    padding: 32px 24px 24px;
+  }
+
+  .reading-body {
+    padding: 24px;
+  }
+
+  .reading-footer {
     padding: 24px;
   }
 }
