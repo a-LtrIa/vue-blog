@@ -1,225 +1,138 @@
 <template>
   <div class="blog-content">
-    <!-- Cinematic Hero Header -->
-    <header class="hero-section">
-      <div class="hero-glass glass-morphism">
-        <div class="hero-badge">
-          <span class="badge-dot"></span>
-          <span class="badge-text">个人博客</span>
+    <!-- Clean Header -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand">
+          <h1 class="site-title">{{ settings.site_name || '我的博客' }}</h1>
+          <p class="site-desc">{{ settings.site_description || '记录技术、生活与思考' }}</p>
         </div>
-        <h1 class="hero-title">{{ settings.site_name || '欢迎来到我的博客' }}</h1>
-        <p class="hero-subtitle">{{ settings.site_description || '记录技术、生活与思考' }}</p>
-        <div class="hero-stats">
-          <div class="stat">
-            <span class="stat-value">{{ posts.length }}</span>
-            <span class="stat-label">文章</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat">
-            <span class="stat-value">{{ categories.length }}</span>
-            <span class="stat-label">分类</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat">
-            <span class="stat-value">{{ tags.length }}</span>
-            <span class="stat-label">标签</span>
-          </div>
-        </div>
+        <nav class="header-nav">
+          <a href="#" class="nav-link active">首页</a>
+          <a href="#posts" class="nav-link">文章</a>
+          <a href="#about" class="nav-link">关于</a>
+        </nav>
       </div>
     </header>
 
     <!-- Main Container -->
-    <div class="container">
-      <!-- Bento Grid Dashboard -->
-      <div class="bento-grid">
-        <!-- Profile Card - Large -->
-        <div class="bento-card glass-morphism profile-card span-2 row-2">
-          <div class="card-shine"></div>
-          <div class="profile-header">
-            <div class="avatar-wrapper">
-              <div class="avatar-glow"></div>
-              <img :src="settings.avatar_url || defaultAvatar" alt="头像" class="profile-avatar" @error="handleAvatarError" />
-            </div>
-            <div class="profile-meta">
-              <h2 class="profile-name">{{ settings.author_name || 'ALT' }}</h2>
-              <p class="profile-role">{{ settings.author_bio || '前端工程师 | 热爱开源与设计' }}</p>
-            </div>
+    <main class="main-container">
+      <!-- Hero Profile Section -->
+      <section class="hero-section">
+        <div class="profile-card">
+          <div class="profile-avatar-wrap">
+            <img :src="settings.avatar_url || defaultAvatar" alt="头像" class="profile-avatar" @error="handleAvatarError" />
           </div>
-          <div class="profile-actions">
-            <button class="action-btn primary">
-              <span>关于我</span>
-            </button>
-            <button class="action-btn secondary">
-              <span>联系我</span>
-            </button>
+          <div class="profile-info">
+            <h2 class="profile-name">{{ settings.author_name || '作者' }}</h2>
+            <p class="profile-bio">{{ settings.author_bio || '热爱技术与设计' }}</p>
+            <div class="profile-stats">
+              <div class="stat-item">
+                <span class="stat-num">{{ posts.length }}</span>
+                <span class="stat-label">文章</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">{{ categories.length }}</span>
+                <span class="stat-label">分类</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">{{ tags.length }}</span>
+                <span class="stat-label">标签</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Featured Post Card -->
-        <div class="bento-card glass-morphism featured-card" v-if="posts[0]">
-          <div class="card-badge hot">热门</div>
+        <!-- Featured Post -->
+        <div class="featured-card" v-if="posts[0]" @click="viewPost(posts[0])">
+          <div class="featured-badge">精选</div>
           <div class="featured-content">
             <span class="featured-category">{{ posts[0].category_name }}</span>
             <h3 class="featured-title">{{ posts[0].title }}</h3>
-            <p class="featured-excerpt">{{ posts[0].excerpt || posts[0].content?.substring(0, 80) + '...' }}</p>
+            <p class="featured-excerpt">{{ posts[0].excerpt || posts[0].content?.substring(0, 100) + '...' }}</p>
           </div>
-          <button class="read-btn" @click="viewPost(posts[0])">
-            <span>阅读</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
-        </div>
-
-        <!-- Quick Stats Card -->
-        <div class="bento-card glass-morphism stats-card">
-          <h3 class="card-title">数据概览</h3>
-          <div class="mini-stats">
-            <div class="mini-stat">
-              <div class="mini-stat-icon">📝</div>
-              <div class="mini-stat-info">
-                <span class="mini-stat-value">{{ posts.length }}</span>
-                <span class="mini-stat-label">文章</span>
-              </div>
-            </div>
-            <div class="mini-stat">
-              <div class="mini-stat-icon">📂</div>
-              <div class="mini-stat-info">
-                <span class="mini-stat-value">{{ categories.length }}</span>
-                <span class="mini-stat-label">分类</span>
-              </div>
-            </div>
-            <div class="mini-stat">
-              <div class="mini-stat-icon">🏷️</div>
-              <div class="mini-stat-info">
-                <span class="mini-stat-value">{{ tags.length }}</span>
-                <span class="mini-stat-label">标签</span>
-              </div>
-            </div>
+          <div class="featured-footer">
+            <time>{{ formatDate(posts[0].created_at) }}</time>
+            <span class="read-more">阅读全文 →</span>
           </div>
         </div>
+      </section>
 
-        <!-- Categories Card -->
-        <div class="bento-card glass-morphism categories-card span-2">
-          <div class="card-header">
-            <h3 class="card-title">文章分类</h3>
-            <span class="card-count">{{ categories.length }} 个分类</span>
-          </div>
-          <div class="category-grid">
-            <div v-for="category in categories.slice(0, 6)" :key="category.id" class="category-item">
-              <div class="category-icon-wrapper">
-                <span class="category-icon">{{ getCategoryIcon(category.name) }}</span>
-              </div>
-              <div class="category-info">
-                <span class="category-name">{{ category.name }}</span>
-                <span class="category-count">{{ category.post_count || 0 }} 篇</span>
-              </div>
-            </div>
+      <!-- Categories Grid -->
+      <section class="categories-section">
+        <h3 class="section-title">文章分类</h3>
+        <div class="categories-grid">
+          <div v-for="category in categories.slice(0, 6)" :key="category.id" class="category-card">
+            <span class="category-icon">{{ getCategoryIcon(category.name) }}</span>
+            <span class="category-name">{{ category.name }}</span>
+            <span class="category-count">{{ category.post_count || 0 }} 篇</span>
           </div>
         </div>
+      </section>
 
-        <!-- Tags Cloud Card -->
-        <div class="bento-card glass-morphism tags-card">
-          <h3 class="card-title">热门标签</h3>
-          <div class="tag-cloud">
-            <span
-              v-for="(tag, index) in tags.slice(0, 12)"
-              :key="tag.id"
-              class="tag-item"
-              :class="{ 'tag-lg': index < 3, 'tag-md': index >= 3 && index < 7 }"
-            >
-              {{ tag.name }}
-            </span>
-          </div>
+      <!-- Tags Cloud -->
+      <section class="tags-section">
+        <h3 class="section-title">热门标签</h3>
+        <div class="tags-list">
+          <span v-for="(tag, index) in tags.slice(0, 15)" :key="tag.id" class="tag-pill" :class="{ 'tag-lg': index < 5 }">
+            {{ tag.name }}
+          </span>
         </div>
+      </section>
 
-        <!-- Social Links Card -->
-        <div class="bento-card glass-morphism social-card">
-          <h3 class="card-title">关注我</h3>
-          <div class="social-grid">
-            <a v-for="link in socialLinks.slice(0, 4)" :key="link.id" :href="link.url" target="_blank" class="social-item">
-              <div class="social-icon-wrapper">
-                <span class="social-icon">{{ link.icon }}</span>
-              </div>
-              <span class="social-name">{{ link.platform }}</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- About Quote Card -->
-        <div class="bento-card glass-morphism quote-card span-2">
-          <div class="quote-icon">"</div>
-          <p class="quote-text">{{ settings.site_description || '记录技术、分享知识、探索未知。在这里，我将与你分享前端开发的点点滴滴，以及生活中的所思所感。' }}</p>
-          <div class="quote-author">
-            <span>— {{ settings.author_name || 'ALT' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Posts Section -->
-      <section class="posts-section">
+      <!-- Posts List -->
+      <section id="posts" class="posts-section">
         <div class="section-header">
-          <h2 class="section-title">
-            <span class="title-icon">✨</span>
-            最新文章
-          </h2>
-          <button class="view-all-btn">
-            <span>查看全部</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
+          <h3 class="section-title">最新文章</h3>
+          <a href="#" class="view-all">查看全部</a>
         </div>
 
-        <div class="posts-grid">
-          <article
-            class="post-card glass-morphism"
-            v-for="(post, index) in posts"
-            :key="post.id"
-            :style="{ animationDelay: `${index * 0.1}s` }"
-            @click="viewPost(post)"
-          >
-            <div class="post-glow"></div>
-            <div class="post-header">
-              <span class="post-category" v-if="post.category_name">
-                <span class="category-dot"></span>
-                {{ post.category_name }}
-              </span>
+        <div class="posts-list">
+          <article class="post-item" v-for="(post, index) in posts" :key="post.id" @click="viewPost(post)">
+            <div class="post-meta">
+              <span class="post-category" v-if="post.category_name">{{ post.category_name }}</span>
               <time class="post-date">{{ formatDate(post.created_at) }}</time>
             </div>
-            <h3 class="post-title">{{ post.title }}</h3>
-            <p class="post-excerpt">{{ post.excerpt || post.content?.substring(0, 120) + '...' }}</p>
+            <h4 class="post-title">{{ post.title }}</h4>
+            <p class="post-excerpt">{{ post.excerpt || post.content?.substring(0, 150) + '...' }}</p>
             <div class="post-footer">
               <div class="post-tags" v-if="post.tags">
-                <span v-for="tag in post.tags.slice(0, 2)" :key="tag" class="post-tag">{{ tag }}</span>
+                <span v-for="tag in post.tags.slice(0, 3)" :key="tag" class="post-tag">{{ tag }}</span>
               </div>
-              <div class="post-meta">
-                <span class="views">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  {{ post.view_count || 0 }}
-                </span>
-              </div>
+              <span class="post-views">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                {{ post.view_count || 0 }}
+              </span>
             </div>
           </article>
         </div>
 
-        <div v-if="posts.length === 0" class="empty-state glass-morphism">
-          <div class="empty-icon">📝</div>
+        <div v-if="posts.length === 0" class="empty-state">
+          <span class="empty-icon">📝</span>
           <p>暂无文章，敬请期待...</p>
         </div>
       </section>
 
-      <!-- Footer -->
-      <footer class="blog-footer glass-morphism">
-        <div class="footer-content">
-          <p class="copyright">© 2025 {{ settings.site_name || 'ALT的博客' }}</p>
-          <p class="made-with">Made with ❤️ and Vue.js</p>
+      <!-- Social Links -->
+      <section class="social-section">
+        <h3 class="section-title">关注我</h3>
+        <div class="social-list">
+          <a v-for="link in socialLinks" :key="link.id" :href="link.url" target="_blank" class="social-link">
+            <span class="social-icon">{{ link.icon }}</span>
+            <span class="social-name">{{ link.platform }}</span>
+          </a>
         </div>
-      </footer>
-    </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <p class="copyright">© 2025 {{ settings.site_name || '我的博客' }}</p>
+      <p class="credit">Made with Vue.js</p>
+    </footer>
   </div>
 </template>
 
@@ -270,726 +183,391 @@ const viewPost = (post) => {
 </script>
 
 <style scoped>
+/* ===== Base Layout ===== */
 .blog-content {
   min-height: 100vh;
-  padding: 40px 0;
-}
-
-/* Use global glass-morphism classes from main.css */
-/* Local overrides for BlogContent specific styles */
-
-.bento-card {
-  composes: glass-morphism;
-}
-
-.card-shine {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    ellipse at 30% 20%,
-    rgba(255, 255, 255, 0.15) 0%,
-    transparent 50%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.glass-morphism:hover .card-shine {
-  opacity: 1;
-}
-
-/* Cinematic Hero Section */
-.hero-section {
-  padding: 60px 20px 40px;
-  display: flex;
-  justify-content: center;
-}
-
-.hero-glass {
-  padding: 48px 64px;
-  text-align: center;
-  max-width: 700px;
-  width: 100%;
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 100px;
-  margin-bottom: 24px;
-}
-
-.badge-dot {
-  width: 8px;
-  height: 8px;
-  background: #4ade80;
-  border-radius: 50%;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-.badge-text {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.hero-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  font-size: clamp(32px, 5vw, 48px);
-  font-weight: 700;
   color: #ffffff;
-  margin: 0 0 16px 0;
-  letter-spacing: -0.02em;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
 }
 
-.hero-subtitle {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 32px 0;
-  font-weight: 400;
+/* ===== Header ===== */
+.site-header {
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.hero-stats {
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+}
+
+.site-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.site-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 4px 0 0 0;
+}
+
+.header-nav {
+  display: flex;
   gap: 32px;
 }
 
-.stat {
+.nav-link {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #ffffff;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+/* ===== Main Container ===== */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+/* ===== Hero Section ===== */
+.hero-section {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+/* Profile Card - Clean Style */
+.profile-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.profile-avatar-wrap {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0, 0, 0, 0.5);
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.profile-bio {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 24px 0;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
 }
 
-.stat-value {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  font-size: 32px;
+.stat-num {
+  font-size: 24px;
   font-weight: 700;
   color: #ffffff;
-  line-height: 1;
 }
 
 .stat-label {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.stat-divider {
-  width: 1px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* Bento Grid */
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: minmax(180px, auto);
-  gap: 20px;
-  margin-bottom: 60px;
-}
-
-.bento-card {
-  padding: 24px;
+/* Featured Card - Clean Style */
+.featured-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-}
-
-.span-2 {
-  grid-column: span 2;
-}
-
-.row-2 {
-  grid-row: span 2;
-}
-
-.card-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0 0 16px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* Profile Card */
-.profile-card {
-  justify-content: space-between;
-}
-
-.profile-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 16px;
-}
-
-.avatar-wrapper {
   position: relative;
-}
-
-.avatar-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(120, 119, 198, 0.5) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(15px);
-}
-
-.profile-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 1;
-}
-
-.profile-name {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  font-size: 24px;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0;
-}
-
-.profile-role {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0;
-}
-
-.profile-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.action-btn {
-  flex: 1;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: none;
 }
 
-.action-btn.primary {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+.featured-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
 }
 
-.action-btn.primary:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.action-btn.secondary {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.action-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Featured Card */
-.featured-card {
-  position: relative;
-  justify-content: space-between;
-}
-
-.card-badge {
+.featured-badge {
   position: absolute;
   top: 16px;
   right: 16px;
   padding: 4px 12px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 100px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 11px;
-  font-weight: 600;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.featured-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .featured-category {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
 }
 
 .featured-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 600;
-  color: #ffffff;
-  margin: 0;
+  margin: 0 0 12px 0;
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .featured-excerpt {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
   margin: 0;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  flex: 1;
 }
 
-.read-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 16px;
-  align-self: flex-start;
-}
-
-.read-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.read-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* Stats Card */
-.mini-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.mini-stat {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.mini-stat-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  font-size: 20px;
-}
-
-.mini-stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.mini-stat-value {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.mini-stat-label {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Categories Card */
-.card-header {
+.featured-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.card-count {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+.read-more {
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.2s ease;
 }
 
-.category-grid {
+.featured-card:hover .read-more {
+  color: #ffffff;
+}
+
+/* ===== Section Title ===== */
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 20px 0;
+}
+
+/* ===== Categories Section ===== */
+.categories-section {
+  margin-bottom: 48px;
+}
+
+.categories-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 12px;
 }
 
-.category-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+.category-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px 12px;
+  text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.category-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+.category-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
 
-.category-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  font-size: 24px;
-}
-
-.category-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+.category-icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 8px;
 }
 
 .category-name {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
+  display: block;
+  margin-bottom: 4px;
 }
 
 .category-count {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
-/* Tags Card */
-.tag-cloud {
+/* ===== Tags Section ===== */
+.tags-section {
+  margin-bottom: 48px;
+}
+
+.tags-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
-.tag-item {
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+.tag-pill {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 100px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.tag-item:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.25);
+.tag-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 .tag-lg {
   font-size: 14px;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.tag-md {
-  font-size: 13px;
-}
-
-/* Social Card */
-.social-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.social-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.social-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.social-icon-wrapper {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  font-size: 18px;
-}
-
-.social-name {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Quote Card */
-.quote-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 32px;
-}
-
-.quote-icon {
-  font-family: Georgia, serif;
-  font-size: 64px;
-  color: rgba(255, 255, 255, 0.2);
-  line-height: 1;
-  margin-bottom: -20px;
-}
-
-.quote-text {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.7;
-  margin: 0 0 16px 0;
-  font-style: italic;
-}
-
-.quote-author {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* Posts Section */
+/* ===== Posts Section ===== */
 .posts-section {
-  margin-bottom: 60px;
+  margin-bottom: 48px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
-.section-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  font-size: 24px;
-  font-weight: 600;
+.view-all {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.view-all:hover {
   color: #ffffff;
-  margin: 0;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.post-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.post-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.post-meta {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.title-icon {
-  font-size: 28px;
-}
-
-.view-all-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 100px;
-  color: rgba(255, 255, 255, 0.9);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.view-all-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.view-all-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 20px;
-}
-
-.post-card {
-  padding: 28px;
-  cursor: pointer;
-  animation: fadeInUp 0.6s ease-out both;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.post-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at 50% 0%,
-    rgba(120, 119, 198, 0.15) 0%,
-    transparent 50%
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.post-card:hover .post-glow {
-  opacity: 1;
-}
-
-.post-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .post-category {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 100px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.category-dot {
-  width: 6px;
-  height: 6px;
-  background: #4ade80;
-  border-radius: 50%;
 }
 
 .post-date {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .post-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   font-size: 18px;
   font-weight: 600;
+  margin: 0 0 10px 0;
   color: #ffffff;
-  margin: 0 0 12px 0;
-  line-height: 1.4;
 }
 
 .post-excerpt {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   line-height: 1.6;
-  margin: 0 0 20px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin: 0 0 16px 0;
 }
 
 .post-footer {
@@ -1004,39 +582,33 @@ const viewPost = (post) => {
 }
 
 .post-tag {
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 100px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
 }
 
-.post-meta {
+.post-views {
   display: flex;
   align-items: center;
-  gap: 4px;
-}
-
-.views {
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.views svg {
-  width: 16px;
-  height: 16px;
+.post-views svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 80px 40px;
+  padding: 80px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
 
 .empty-icon {
@@ -1045,94 +617,128 @@ const viewPost = (post) => {
 }
 
 .empty-state p {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0;
-}
-
-/* Footer */
-.blog-footer {
-  padding: 32px;
-  text-align: center;
-}
-
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.copyright {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-}
-
-.made-with {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(255, 255, 255, 0.5);
   margin: 0;
 }
 
-/* Responsive */
+/* ===== Social Section ===== */
+.social-section {
+  margin-bottom: 48px;
+}
+
+.social-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.social-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.social-icon {
+  font-size: 18px;
+}
+
+.social-name {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ===== Footer ===== */
+.site-footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.copyright {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 8px 0;
+}
+
+.credit {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 1024px) {
-  .bento-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .hero-section {
+    grid-template-columns: 280px 1fr;
   }
 
-  .span-2 {
-    grid-column: span 2;
-  }
-
-  .row-2 {
-    grid-row: span 1;
-  }
-
-  .category-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .posts-grid {
-    grid-template-columns: 1fr;
+  .categories-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 640px) {
-  .hero-glass {
-    padding: 32px 24px;
+@media (max-width: 768px) {
+  .header-inner {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
   }
 
-  .hero-stats {
-    gap: 20px;
-  }
-
-  .stat-value {
-    font-size: 24px;
-  }
-
-  .bento-grid {
+  .hero-section {
     grid-template-columns: 1fr;
   }
 
-  .span-2 {
-    grid-column: span 1;
+  .profile-card {
+    padding: 24px;
   }
 
-  .category-grid {
+  .categories-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .posts-grid {
-    grid-template-columns: 1fr;
+  .post-item {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-container {
+    padding: 24px 16px;
   }
 
-  .section-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+  .header-nav {
+    gap: 20px;
+  }
+
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .category-card {
+    padding: 16px 8px;
+  }
+
+  .featured-card {
+    padding: 24px;
+  }
+
+  .featured-title {
+    font-size: 18px;
   }
 }
 </style>

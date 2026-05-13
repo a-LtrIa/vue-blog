@@ -6,8 +6,6 @@
       :class="{ 'loaded': bgLoaded }"
       :style="bgLoaded ? { backgroundImage: `url(${backgroundImage})` } : {}"
     >
-      <!-- Animated gradient overlay for depth -->
-      <div class="gradient-overlay"></div>
       <!-- Vignette effect -->
       <div class="vignette"></div>
     </div>
@@ -22,62 +20,56 @@
       class="welcome-content"
       :class="{ 'content-loaded': contentLoaded }"
     >
-      <!-- Liquid Glass Hero Card -->
-      <div class="hero-card glass-hero">
-        <!-- Glowing orb behind avatar -->
-        <div class="avatar-glow"></div>
-
-        <!-- Avatar with 3D tilt effect -->
-        <div class="avatar-wrapper" @click="enterBlog" @mousemove="handleMouseMove" @mouseleave="resetTilt">
-          <div class="avatar-container" :style="avatarTiltStyle">
-            <div class="avatar-ring"></div>
-            <img
-              :src="avatarUrl || defaultAvatar"
-              alt="Avatar"
-              class="avatar"
-              @error="handleAvatarError"
-            />
-          </div>
+      <!-- Avatar with 3D tilt effect -->
+      <div class="avatar-wrapper" @click="enterBlog" @mousemove="handleMouseMove" @mouseleave="resetTilt">
+        <div class="avatar-container" :style="avatarTiltStyle">
+          <div class="avatar-ring"></div>
+          <img
+            :src="avatarUrl || defaultAvatar"
+            alt="Avatar"
+            class="avatar"
+            @error="handleAvatarError"
+          />
         </div>
+      </div>
 
-        <!-- Title with cinematic reveal -->
-        <h1 class="site-title">
-          <span v-for="(char, i) in siteNameChars" :key="i"
-                class="title-char"
-                :style="{ animationDelay: `${0.5 + i * 0.05}s` }">
-            {{ char === ' ' ? '\u00A0' : char }}
-          </span>
-        </h1>
+      <!-- Title with cinematic reveal - No Card Style -->
+      <h1 class="site-title">
+        <span v-for="(char, i) in siteNameChars" :key="i"
+              class="title-char"
+              :style="{ animationDelay: `${0.5 + i * 0.05}s` }">
+          {{ char === ' ' ? '\u00A0' : char }}
+        </span>
+      </h1>
 
-        <!-- Animated divider -->
-        <div class="divider">
-          <div class="divider-line"></div>
-          <div class="divider-dot"></div>
-          <div class="divider-line"></div>
+      <!-- Animated divider -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-dot"></div>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Subtitle with Typewriter Effect -->
+      <p class="subtitle">
+        <span class="typewriter-text">{{ displayedText }}</span>
+        <span class="cursor" :class="{ 'blink': showCursor }">|</span>
+      </p>
+
+      <!-- Cinematic Enter button -->
+      <button class="enter-btn glass-button magnetic" @click="enterBlog" ref="enterBtn">
+        <span class="btn-text">进入博客</span>
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+      <!-- Elegant scroll hint -->
+      <div class="scroll-hint" @click="enterBlog">
+        <div class="mouse">
+          <div class="wheel"></div>
         </div>
-
-        <!-- Subtitle with Typewriter Effect -->
-        <p class="subtitle">
-          <span class="typewriter-text">{{ displayedText }}</span>
-          <span class="cursor" :class="{ 'blink': showCursor }">|</span>
-        </p>
-
-        <!-- Cinematic Enter button -->
-        <button class="enter-btn glass-button magnetic" @click="enterBlog" ref="enterBtn">
-          <span class="btn-text">进入博客</span>
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </button>
-
-        <!-- Elegant scroll hint -->
-        <div class="scroll-hint" @click="enterBlog">
-          <div class="mouse">
-            <div class="wheel"></div>
-          </div>
-          <span class="scroll-text">向下滚动探索</span>
-          <div class="scroll-line"></div>
-        </div>
+        <span class="scroll-text">向下滚动探索</span>
+        <div class="scroll-line"></div>
       </div>
     </div>
   </div>
@@ -180,13 +172,12 @@ const handleAvatarError = (e) => {
   e.target.src = defaultAvatar
 }
 
-// Particle animation styles
+// Particle animation styles - Slow and subtle
 const getParticleStyle = (n) => ({
   left: `${Math.random() * 100}%`,
-  top: `${Math.random() * 100}%`,
-  animationDelay: `${Math.random() * 5}s`,
-  animationDuration: `${10 + Math.random() * 10}s`,
-  opacity: 0.1 + Math.random() * 0.3
+  animationDelay: `${Math.random() * 15}s`,
+  animationDuration: `${25 + Math.random() * 20}s`,
+  opacity: 0.15
 })
 
 // Preload background image
@@ -228,7 +219,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #1a1a2e;
+  background-color: #1a1a1a;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -243,41 +234,17 @@ onMounted(() => {
   transform: scale(1);
 }
 
-.gradient-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(ellipse at 20% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.4) 0%, transparent 70%);
-  animation: gradientShift 20s ease-in-out infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.1);
-  }
-}
-
 .vignette {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
   pointer-events: none;
 }
 
-/* Floating Particles */
+/* Floating Particles - Slow and subtle */
 .particles {
   position: absolute;
   top: 0;
@@ -290,85 +257,53 @@ onMounted(() => {
 
 .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.5);
+  width: 3px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   animation: float-up linear infinite;
 }
 
 @keyframes float-up {
   0% {
-    transform: translateY(100vh) scale(0);
+    transform: translateY(100vh);
     opacity: 0;
   }
-  10% {
-    opacity: 1;
+  5% {
+    opacity: 0.15;
   }
-  90% {
-    opacity: 1;
+  95% {
+    opacity: 0.15;
   }
   100% {
-    transform: translateY(-100vh) scale(1);
+    transform: translateY(-100vh);
     opacity: 0;
   }
 }
 
-/* Content */
+/* Content - No Card Style */
 .welcome-content {
   position: relative;
   z-index: 10;
   opacity: 0;
-  transform: translateY(40px) scale(0.95);
+  transform: translateY(40px);
   transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
 }
 
 .content-loaded {
   opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Glass Hero Card */
-.hero-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 64px 80px;
-  text-align: center;
-  min-width: 480px;
-  max-width: 600px;
-}
-
-/* Avatar Glow */
-.avatar-glow {
-  position: absolute;
-  top: 64px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(circle, rgba(120, 119, 198, 0.6) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(20px);
-  animation: pulse-glow 4s ease-in-out infinite;
-  z-index: 0;
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    transform: translateX(-50%) scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateX(-50%) scale(1.2);
-    opacity: 0.8;
-  }
+  transform: translateY(0);
 }
 
 /* Avatar */
 .avatar-wrapper {
   position: relative;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
   cursor: pointer;
   z-index: 1;
   perspective: 1000px;
@@ -387,9 +322,9 @@ onMounted(() => {
   left: -8px;
   right: -8px;
   bottom: -8px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  animation: ring-rotate 10s linear infinite;
+  animation: ring-rotate 15s linear infinite;
 }
 
 .avatar-ring::before {
@@ -401,7 +336,7 @@ onMounted(() => {
   bottom: -4px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
-  animation: ring-rotate 15s linear infinite reverse;
+  animation: ring-rotate 20s linear infinite reverse;
 }
 
 @keyframes ring-rotate {
@@ -414,33 +349,29 @@ onMounted(() => {
 }
 
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .avatar-wrapper:hover .avatar {
   transform: scale(1.05);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 2px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* Title with Character Animation */
 .site-title {
-  font-family: var(--font-display);
-  font-size: 44px;
+  font-family: var(--font-display, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);
+  font-size: clamp(36px, 8vw, 64px);
   font-weight: 700;
   color: #ffffff;
-  margin: 0 0 20px 0;
+  margin: 0 0 24px 0;
   letter-spacing: -0.02em;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   z-index: 1;
   display: flex;
   flex-wrap: wrap;
@@ -450,7 +381,7 @@ onMounted(() => {
 .title-char {
   display: inline-block;
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(30px);
   animation: charReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -465,15 +396,15 @@ onMounted(() => {
 .divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 24px;
   z-index: 1;
 }
 
 .divider-line {
-  width: 60px;
+  width: 80px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   animation: lineExpand 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
 
@@ -483,7 +414,7 @@ onMounted(() => {
     opacity: 0;
   }
   to {
-    width: 60px;
+    width: 80px;
     opacity: 1;
   }
 }
@@ -491,35 +422,23 @@ onMounted(() => {
 .divider-dot {
   width: 6px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 50%;
-  animation: dotPulse 2s ease-in-out infinite;
-}
-
-@keyframes dotPulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.3);
-    opacity: 1;
-  }
 }
 
 /* Subtitle with Typewriter */
 .subtitle {
-  font-family: var(--font-text);
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 36px 0;
+  font-family: var(--font-text, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif);
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 40px 0;
   font-weight: 400;
-  min-height: 24px;
+  min-height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .typewriter-text {
@@ -527,10 +446,9 @@ onMounted(() => {
 }
 
 .cursor {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 300;
   margin-left: 2px;
-  opacity: 1;
 }
 
 .cursor.blink {
@@ -544,7 +462,7 @@ onMounted(() => {
 
 /* Cinematic Enter Button */
 .enter-btn {
-  margin-bottom: 40px;
+  margin-bottom: 48px;
   z-index: 1;
 }
 
@@ -570,43 +488,32 @@ onMounted(() => {
 }
 
 .scroll-hint:hover {
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .scroll-text {
-  font-family: var(--font-text);
+  font-family: var(--font-text, -apple-system, BlinkMacSystemFont, sans-serif);
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  animation: fadeInOut 2s ease-in-out infinite;
-}
-
-@keyframes fadeInOut {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
 }
 
 .mouse {
-  width: 24px;
-  height: 38px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 12px;
+  width: 22px;
+  height: 34px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 11px;
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
 }
 
 .wheel {
-  width: 4px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.8);
+  width: 3px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 2px;
   position: absolute;
-  top: 8px;
+  top: 6px;
   left: 50%;
   transform: translateX(-50%);
   animation: scroll-wheel 2s ease-in-out infinite;
@@ -615,38 +522,24 @@ onMounted(() => {
 @keyframes scroll-wheel {
   0%, 100% {
     transform: translateX(-50%) translateY(0);
-    opacity: 1;
+    opacity: 0.6;
   }
   50% {
-    transform: translateX(-50%) translateY(8px);
-    opacity: 0.3;
+    transform: translateX(-50%) translateY(6px);
+    opacity: 0.2;
   }
 }
 
 .scroll-line {
   width: 1px;
-  height: 30px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), transparent);
-  animation: lineGrow 2s ease-in-out infinite;
-}
-
-@keyframes lineGrow {
-  0%, 100% {
-    transform: scaleY(0.5);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scaleY(1);
-    opacity: 0.8;
-  }
+  height: 24px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
 }
 
 /* Responsive */
 @media (max-width: 640px) {
-  .hero-card {
-    padding: 48px 32px;
-    min-width: auto;
-    margin: 0 20px;
+  .welcome-content {
+    padding: 24px;
   }
 
   .site-title {
@@ -654,22 +547,22 @@ onMounted(() => {
   }
 
   .avatar {
-    width: 100px;
-    height: 100px;
-  }
-
-  .avatar-glow {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 15px;
   }
 
-  .enter-btn {
-    padding: 14px 28px;
-    font-size: 15px;
+  .divider-line {
+    width: 50px;
+  }
+
+  @keyframes lineExpand {
+    to {
+      width: 50px;
+    }
   }
 }
 </style>

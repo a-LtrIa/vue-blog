@@ -88,10 +88,10 @@ const fetchData = async () => {
     ])
 
     settings.value = { ...settings.value, ...settingsRes.data }
-    socialLinks.value = socialRes.data
-    categories.value = categoriesRes.data
-    posts.value = postsRes.data.posts
-    tags.value = tagsRes.data
+    socialLinks.value = socialRes.data?.socialLinks || socialRes.data || []
+    categories.value = categoriesRes.data?.categories || categoriesRes.data || []
+    posts.value = postsRes.data?.posts || []
+    tags.value = tagsRes.data?.tags || tagsRes.data || []
 
     // Set background image
     bgImage.value = settings.value.background_url || 'https://www.loliapi.com/acg/'
