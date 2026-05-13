@@ -242,8 +242,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { marked } from 'marked'
 import { postsApi } from '../api/index.js'
 import {
@@ -272,6 +272,7 @@ import {
 } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 
 const props = defineProps({
   settings: Object,
@@ -289,6 +290,7 @@ const mainLayoutRef = ref(null)
 const selectedPost = ref(null)
 const postContent = ref({})
 const isLoadingPost = ref(false)
+const backTarget = ref('/articles')
 
 const renderedContent = computed(() => {
   if (!postContent.value.content) return ''
@@ -362,7 +364,8 @@ const handleAvatarError = (e) => {
   e.target.src = defaultAvatar
 }
 
-const viewPost = async (post) => {
+const viewPost = async (post, fromPath = '/articles') => {
+  backTarget.value = fromPath
   selectedPost.value = post
   isLoadingPost.value = true
   try {
@@ -380,6 +383,7 @@ const viewPost = async (post) => {
 const closePost = () => {
   selectedPost.value = null
   postContent.value = {}
+  router.push(backTarget.value)
 }
 
 const goToArticles = () => {
@@ -387,7 +391,7 @@ const goToArticles = () => {
 }
 
 const goToCategory = (category) => {
-  router.push(`/articles?category=${encodeURIComponent(category.name)}`)
+  router.push(`/articles?category=${encodeURIComponent(category.name)}&view=single`)
 }
 
 // 同步滚动效果 - 左右两侧完全同步
@@ -431,6 +435,27 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
+
+// 监听路由参数，从仓库返回时自动打开文章
+watch(() => route.query.read, async (slug) => {
+  if (slug && typeof slug === 'string') {
+    const from = route.query.from
+    const fromPath = typeof from === 'string' ? from : '/articles'
+    const post = props.posts.find(p => p.slug === slug)
+    if (post) {
+      await viewPost(post, fromPath)
+    } else {
+      try {
+        const res = await postsApi.getBySlug(slug)
+        await viewPost(res.data, fromPath)
+      } catch (e) {
+        console.error('自动打开文章失败', e)
+      }
+    }
+    // 清除 query，避免刷新重复触发
+    router.replace({ path: '/', query: {} })
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>

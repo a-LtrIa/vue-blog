@@ -1,4 +1,12 @@
 <template>
+  <svg style="display: none">
+    <defs>
+      <filter id="liquid_glass_filter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+        <feDisplacementMap scale="200" />
+      </filter>
+    </defs>
+  </svg>
+
   <nav class="glass-navbar" :class="{ 'nav-scrolled': isScrolled, 'nav-hidden': isHidden }">
     <div class="nav-container">
       <a href="/" class="nav-logo" @click.prevent="goHome">
@@ -59,6 +67,10 @@
     <transition name="search-modal">
       <div v-if="showSearch" class="search-overlay" @click="closeSearch">
         <div class="search-panel" @click.stop>
+          <div class="liquid_glass-outer"></div>
+          <div class="liquid_glass-cover"></div>
+          <div class="liquid_glass-sharp"></div>
+          <div class="liquid_glass-reflect"></div>
           <div class="search-input-row">
             <Search :size="18" class="search-panel-icon" />
             <input
@@ -73,30 +85,29 @@
             />
             <kbd class="search-kbd">esc</kbd>
           </div>
-          <div class="search-panel-results" v-if="searchResults.length">
-            <div
-              v-for="(result, index) in searchResults"
-              :key="result.id"
-              class="search-panel-item"
-              :class="{ 'search-panel-item-active': index === selectedIndex }"
-              @click="goToPost(result)"
-              @mouseenter="selectedIndex = index"
-            >
-              <FileText :size="16" class="search-panel-item-icon" />
-              <div class="search-panel-item-content">
-                <span class="search-panel-item-title">{{ result.title }}</span>
-                <span class="search-panel-item-meta">
-                  <span v-if="result.category_name" class="search-panel-item-cat">{{ result.category_name }}</span>
-                  <span class="search-panel-item-date">{{ formatSearchDate(result.created_at) }}</span>
-                </span>
+          <div class="search-panel-results" v-if="searchQuery.trim()">
+            <div v-if="searchResults.length">
+              <div
+                v-for="(result, index) in searchResults"
+                :key="result.id"
+                class="search-panel-item"
+                :class="{ 'search-panel-item-active': index === selectedIndex }"
+                @click="goToPost(result)"
+                @mouseenter="selectedIndex = index"
+              >
+                <FileText :size="16" class="search-panel-item-icon" />
+                <div class="search-panel-item-content">
+                  <span class="search-panel-item-title">{{ result.title }}</span>
+                  <span class="search-panel-item-meta">
+                    <span v-if="result.category_name" class="search-panel-item-cat">{{ result.category_name }}</span>
+                    <span class="search-panel-item-date">{{ formatSearchDate(result.created_at) }}</span>
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="search-panel-empty" v-else-if="searchQuery.trim()">
-            <span>未找到相关文章</span>
-          </div>
-          <div class="search-panel-hint" v-else>
-            <span>输入关键词搜索文章</span>
+            <div class="search-panel-empty" v-else>
+              <span>未找到相关文章</span>
+            </div>
           </div>
         </div>
       </div>
@@ -252,11 +263,11 @@ onUnmounted(() => {
 }
 
 .glass-navbar.nav-scrolled {
-  background: rgba(15, 15, 25, 0.75);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
 }
 
 .glass-navbar.nav-hidden {
@@ -432,13 +443,13 @@ onUnmounted(() => {
   left: 24px;
   right: 24px;
   margin-top: 12px;
-  background: rgba(20, 20, 30, 0.95);
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 16px;
   padding: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-menu-content {
@@ -485,41 +496,77 @@ onUnmounted(() => {
   transform: translateY(-10px);
 }
 
-/* Search Overlay - Apple Spotlight Style */
+/* Search Overlay - Transparent */
 .search-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: transparent;
   z-index: 2000;
   display: flex;
   justify-content: center;
   padding-top: 18vh;
 }
 
+/* Search Panel - Liquid Glass */
 .search-panel {
+  position: relative;
   width: 100%;
   max-width: 560px;
   margin: 0 24px;
-  background: rgba(30, 30, 40, 0.92);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 25px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   height: fit-content;
 }
 
+.search-panel .liquid_glass-outer {
+  backdrop-filter: url(#liquid_glass_filter);
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 16px;
+  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect x="0" y="0" width="100%" height="100%" rx="0" ry="0" fill="white"/></svg>'),
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect x="5" y="5" width="calc(100% - 10px)" height="calc(100% - 10px)" rx="11" ry="11" fill="white"/></svg>');
+  mask-composite: exclude;
+}
+
+.search-panel .liquid_glass-cover {
+  backdrop-filter: blur(2px);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.search-panel .liquid_glass-sharp {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  box-shadow:
+    inset 1px 1px 0px 0px rgba(255, 255, 255, 0.5),
+    inset -1px -1px 0px 0px rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.search-panel .liquid_glass-reflect {
+  position: absolute;
+  inset: 1px;
+  z-index: 2;
+  box-shadow:
+    inset 2px 2px 6px 2px rgba(255, 255, 255, 0.2),
+    inset -2px -2px 4px -1px rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
 .search-input-row {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .search-panel-icon {
@@ -558,8 +605,11 @@ onUnmounted(() => {
 }
 
 .search-panel-results {
+  position: relative;
+  z-index: 5;
   max-height: 360px;
   overflow-y: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .search-panel-item {
@@ -569,6 +619,23 @@ onUnmounted(() => {
   padding: 12px 18px;
   cursor: pointer;
   transition: background 0.15s ease;
+  position: relative;
+}
+
+.search-panel-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 18px;
+  width: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+}
+
+.search-panel-item:hover::after,
+.search-panel-item-active::after {
+  width: calc(100% - 36px);
 }
 
 .search-panel-item:hover,
@@ -620,8 +687,7 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.3);
 }
 
-.search-panel-empty,
-.search-panel-hint {
+.search-panel-empty {
   padding: 32px 18px;
   text-align: center;
   font-size: 14px;

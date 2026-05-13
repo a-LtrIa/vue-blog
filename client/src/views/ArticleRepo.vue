@@ -2,15 +2,15 @@
   <div class="article-repo">
     <div class="repo-container">
       <header class="repo-header">
-        <button class="back-home-btn" @click="goHome">
+        <button class="back-home-btn" @click="goBack">
           <ArrowLeft :size="18" />
-          <span>返回主页</span>
+          <span>{{ singleCategoryView ? '返回仓库' : '返回主页' }}</span>
         </button>
         <div class="repo-title-area">
-          <h1 class="repo-title">文章仓库</h1>
-          <p class="repo-subtitle" v-if="activeCategory">分类：{{ activeCategory }}</p>
+          <h1 class="repo-title">{{ singleCategoryView ? singleCategoryName : '文章仓库' }}</h1>
+          <p class="repo-subtitle" v-if="!singleCategoryView && activeCategory">分类：{{ activeCategory }}</p>
         </div>
-        <div class="mode-toggle">
+        <div class="mode-toggle" v-if="!singleCategoryView">
           <button
             class="mode-btn"
             :class="{ active: viewMode === 'folder' }"
@@ -30,8 +30,34 @@
         </div>
       </header>
 
+      <!-- Single Category View -->
+      <div v-if="singleCategoryView" class="single-category-view">
+        <div class="single-category-posts">
+          <div
+            v-for="post in singleCategoryPosts"
+            :key="post.id"
+            class="single-post-card"
+            @click="viewPost(post)"
+          >
+            <div class="single-post-body">
+              <div class="single-post-meta">
+                <time class="single-post-date">{{ formatFullDate(post.created_at) }}</time>
+              </div>
+              <h3 class="single-post-title">{{ post.title }}</h3>
+              <p class="single-post-excerpt">
+                {{ post.excerpt || post.content?.substring(0, 150) + '...' }}
+              </p>
+            </div>
+          </div>
+          <div v-if="singleCategoryPosts.length === 0" class="repo-empty">
+            <FileText :size="48" class="empty-icon" />
+            <p>该分类暂无文章</p>
+          </div>
+        </div>
+      </div>
+
       <!-- File Repository Mode -->
-      <div v-if="viewMode === 'folder'" class="folder-mode">
+      <div v-if="viewMode === 'folder' && !singleCategoryView" class="folder-mode">
         <div class="folder-grid">
           <div
             v-for="cat in categoriesWithPosts"
@@ -39,7 +65,7 @@
             class="folder-card"
             :class="{ expanded: expandedFolder === cat.id }"
           >
-            <div class="folder-header" @click="toggleFolder(cat.id)">
+            <div class="folder-header" @click="toggleFolder(cat.id)" @dblclick="enterFolder(cat)">
               <div class="folder-icon-wrap">
                 <Folder :size="22" v-if="expandedFolder !== cat.id" />
                 <FolderOpen :size="22" v-else />
@@ -78,7 +104,7 @@
       </div>
 
       <!-- Timeline Mode -->
-      <div v-if="viewMode === 'timeline'" class="timeline-mode">
+      <div v-if="viewMode === 'timeline' && !singleCategoryView" class="timeline-mode">
         <div class="timeline-track">
           <div
             v-for="group in timelineGroups"
@@ -146,6 +172,9 @@ const expandedFolder = ref(null)
 const allPosts = ref([])
 const allCategories = ref([])
 const activeCategory = ref('')
+const singleCategoryView = ref(false)
+const singleCategoryName = ref('')
+const singleCategoryPosts = ref([])
 
 const categoriesWithPosts = computed(() => {
   return allCategories.value.map(cat => ({
@@ -177,11 +206,28 @@ const toggleFolder = (id) => {
 }
 
 const viewPost = (post) => {
-  router.push(`/post/${post.slug}`)
+  const currentQuery = { ...route.query }
+  delete currentQuery.read
+  const fromPath = '/articles' + (Object.keys(currentQuery).length ? '?' + new URLSearchParams(currentQuery).toString() : '')
+  router.push({ path: '/', query: { read: post.slug, from: fromPath } })
 }
 
-const goHome = () => {
-  router.push('/')
+const goBack = () => {
+  if (singleCategoryView.value) {
+    singleCategoryView.value = false
+    singleCategoryName.value = ''
+    singleCategoryPosts.value = []
+    router.replace({ path: '/articles', query: {} })
+  } else {
+    router.push('/')
+  }
+}
+
+const enterFolder = (cat) => {
+  singleCategoryView.value = true
+  singleCategoryName.value = cat.name
+  singleCategoryPosts.value = allPosts.value.filter(p => p.category_id === cat.id)
+  router.replace({ path: '/articles', query: { category: cat.name, view: 'single' } })
 }
 
 const formatDate = (dateStr) => {
@@ -189,6 +235,16 @@ const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return date.toLocaleDateString('zh-CN', {
     month: 'short',
+    day: 'numeric'
+  })
+}
+
+const formatFullDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
     day: 'numeric'
   })
 }
@@ -204,7 +260,18 @@ const loadData = async () => {
     allCategories.value = categoriesRes.data?.categories || categoriesRes.data || []
 
     const catParam = route.query.category
-    if (catParam) {
+    const viewParam = route.query.view
+
+    if (catParam && viewParam === 'single') {
+      const matchedCat = allCategories.value.find(
+        c => c.name === catParam || c.slug === catParam
+      )
+      if (matchedCat) {
+        singleCategoryView.value = true
+        singleCategoryName.value = matchedCat.name
+        singleCategoryPosts.value = allPosts.value.filter(p => p.category_id === matchedCat.id)
+      }
+    } else if (catParam) {
       activeCategory.value = catParam
       const matchedCat = allCategories.value.find(
         c => c.name === catParam || c.slug === catParam
@@ -250,12 +317,12 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: var(--bg-card, rgba(40, 40, 40, 0.8));
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -263,9 +330,9 @@ onMounted(() => {
 }
 
 .back-home-btn:hover {
-  background: var(--bg-hover, rgba(50, 50, 50, 0.9));
-  border-color: var(--border-hover, rgba(255, 255, 255, 0.15));
-  color: var(--text-primary, #ffffff);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   transform: translateX(-4px);
 }
 
@@ -292,8 +359,8 @@ onMounted(() => {
 .mode-toggle {
   display: flex;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 4px;
   flex-shrink: 0;
@@ -320,9 +387,9 @@ onMounted(() => {
 }
 
 .mode-btn.active {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary, #ffffff);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== File Repository Mode ===== */
@@ -333,22 +400,24 @@ onMounted(() => {
 }
 
 .folder-card {
-  background: var(--bg-card, rgba(40, 40, 40, 0.8));
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .folder-card:hover {
-  border-color: var(--border-hover, rgba(255, 255, 255, 0.15));
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.09);
 }
 
 .folder-card.expanded {
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .folder-header {
@@ -373,14 +442,14 @@ onMounted(() => {
   justify-content: center;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  color: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
   transition: all 0.3s ease;
 }
 
 .folder-card.expanded .folder-icon-wrap {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary, #ffffff);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .folder-info {
@@ -425,6 +494,22 @@ onMounted(() => {
   cursor: pointer;
   transition: background 0.2s ease;
   gap: 16px;
+  position: relative;
+}
+
+.folder-post-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 56px;
+  width: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+}
+
+.folder-post-item:hover::after {
+  width: calc(100% - 76px);
 }
 
 .folder-post-item:hover {
@@ -543,19 +628,36 @@ onMounted(() => {
 }
 
 .timeline-card {
-  background: var(--bg-card, rgba(40, 40, 40, 0.8));
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+}
+
+.timeline-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  width: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+}
+
+.timeline-card:hover::after {
+  width: calc(100% - 40px);
 }
 
 .timeline-card:hover {
-  border-color: var(--border-hover, rgba(255, 255, 255, 0.15));
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.09);
   transform: translateX(6px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .timeline-card-body {
@@ -573,9 +675,9 @@ onMounted(() => {
   font-size: 11px;
   padding: 3px 10px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 100px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -600,6 +702,82 @@ onMounted(() => {
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Single Category View */
+.single-category-view {
+  margin-top: 8px;
+}
+
+.single-category-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.single-post-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.single-post-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  width: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+}
+
+.single-post-card:hover::after {
+  width: calc(100% - 40px);
+}
+
+.single-post-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateX(6px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.single-post-body {
+  padding: 20px 24px;
+}
+
+.single-post-meta {
+  margin-bottom: 8px;
+}
+
+.single-post-date {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.single-post-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+}
+
+.single-post-excerpt {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.7;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

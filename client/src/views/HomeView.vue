@@ -34,11 +34,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import Welcome from '../components/Welcome.vue'
 import BlogContent from '../components/BlogContent.vue'
 import GlassNavbar from '../components/GlassNavbar.vue'
 
+const route = useRoute()
 const contentRef = ref(null)
 const showWelcome = ref(true)
 
@@ -48,6 +50,13 @@ const props = defineProps({
   tags: Array,
   settings: Object,
   socialLinks: Array
+})
+
+onMounted(() => {
+  // 如果有 read 参数（从文章仓库返回阅读），跳过欢迎页面
+  if (route.query.read) {
+    showWelcome.value = false
+  }
 })
 
 const hideWelcome = () => {
