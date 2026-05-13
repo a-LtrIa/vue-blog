@@ -12,56 +12,23 @@
       <div class="bg-noise"></div>
     </div>
 
-    <!-- Welcome Screen -->
-    <transition name="page-transition">
-      <Welcome
-        v-if="showWelcome"
-        :background-image="bgImage"
-        :site-name="settings.site_name"
-        :avatar-url="settings.avatar_url"
-        @scroll-down="handleScrollDown"
-      />
-    </transition>
-
-    <!-- Main Content -->
-    <transition name="content-transition">
-      <div
-        v-if="!showWelcome"
-        class="main-content"
-      >
-        <BlogContent
-          :settings="settings"
-          :social-links="socialLinks"
-          :categories="categories"
-          :posts="posts"
-          :tags="tags"
-          @view-post="handleViewPost"
-        />
-      </div>
-    </transition>
-
-    <!-- Post Detail Modal -->
-    <transition name="modal-transition">
-      <PostDetail
-        v-if="currentPost"
-        :post="currentPost"
-        @close="handleClosePost"
-      />
-    </transition>
+    <!-- Router View -->
+    <router-view
+      :posts="posts"
+      :categories="categories"
+      :tags="tags"
+      :settings="settings"
+      :socialLinks="socialLinks"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import Welcome from './components/Welcome.vue'
-import BlogContent from './components/BlogContent.vue'
-import PostDetail from './components/PostDetail.vue'
 import { settingsApi, categoriesApi, postsApi, tagsApi } from './api/index.js'
 
 const bgImage = ref('')
 const bgLoaded = ref(false)
-const showWelcome = ref(true)
-const currentPost = ref(null)
 
 const settings = ref({
   site_name: 'ALT的博客',
@@ -114,20 +81,6 @@ const preloadImage = (url) => {
     bgLoaded.value = true
   }
   img.src = url
-}
-
-const handleScrollDown = () => {
-  showWelcome.value = false
-}
-
-const handleViewPost = (post) => {
-  currentPost.value = post
-  document.body.style.overflow = 'hidden'
-}
-
-const handleClosePost = () => {
-  currentPost.value = null
-  document.body.style.overflow = ''
 }
 
 onMounted(async () => {
@@ -231,63 +184,5 @@ body {
   opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   pointer-events: none;
-}
-
-.main-content {
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
-
-/* Page transition - Welcome to Main */
-.page-transition-leave-active {
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.page-transition-leave-to {
-  opacity: 0;
-  transform: translateY(-50px) scale(0.95);
-  filter: blur(10px);
-}
-
-.page-transition-enter-active {
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.page-transition-enter-from {
-  opacity: 0;
-  transform: translateY(-50px) scale(0.95);
-  filter: blur(10px);
-}
-
-/* Content transition */
-.content-transition-enter-active {
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
-}
-
-.content-transition-enter-from {
-  opacity: 0;
-  transform: translateY(50px);
-}
-
-.content-transition-leave-active {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.content-transition-leave-to {
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-/* Modal transition */
-.modal-transition-enter-active,
-.modal-transition-leave-active {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modal-transition-enter-from,
-.modal-transition-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
 }
 </style>

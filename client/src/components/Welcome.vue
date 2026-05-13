@@ -195,7 +195,17 @@ onMounted(() => {
     contentLoaded.value = true
     startTypeWriter()
   }, 300)
+  
+  // 添加滚动监听
+  window.addEventListener('wheel', handleScroll, { passive: true })
+  window.addEventListener('touchmove', handleScroll, { passive: true })
 })
+
+const handleScroll = () => {
+  if (contentLoaded.value) {
+    enterBlog()
+  }
+}
 </script>
 
 <style scoped>
