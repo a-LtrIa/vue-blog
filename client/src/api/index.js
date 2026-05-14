@@ -24,4 +24,9 @@ export const settingsApi = {
   getSocialLinks: () => api.get('/settings/social-links')
 }
 
+export const backgroundApi = {
+  getRandom: () => api.get('/background/random'),
+  refresh: () => api.post('/background/refresh')
+}
+
 export default api

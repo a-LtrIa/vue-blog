@@ -48,3 +48,10 @@ export const uploadApi = {
     })
   }
 }
+
+export const backgroundApi = {
+  list: () => api.get('/background/list'),
+  delete: (filename) => api.delete(`/background/${filename}`),
+  fetch: () => api.post('/background/fetch'),
+  refresh: () => api.post('/background/refresh')
+}

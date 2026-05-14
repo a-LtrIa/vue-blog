@@ -189,7 +189,8 @@ const toggleMobileMenu = () => {
   showMobileMenu.value = !showMobileMenu.value
 }
 
-const toggleSearch = () => {
+const toggleSearch = (e) => {
+  e.stopPropagation()
   showSearch.value = true
   nextTick(() => {
     searchInput.value?.focus()
@@ -241,12 +242,22 @@ const handleSearchInput = () => {
   }, 300)
 }
 
+const handleClickOutside = (e) => {
+  if (!showSearch.value) return
+  const panel = document.querySelector('.search-panel')
+  if (panel && !panel.contains(e.target)) {
+    closeSearch()
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -504,7 +515,7 @@ onUnmounted(() => {
   z-index: 2000;
   display: flex;
   justify-content: center;
-  padding-top: 18vh;
+  padding-top: 15vh;
 }
 
 /* Search Panel - Liquid Glass */
@@ -530,7 +541,7 @@ onUnmounted(() => {
 }
 
 .search-panel .liquid_glass-cover {
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -609,6 +620,7 @@ onUnmounted(() => {
   z-index: 5;
   max-height: 360px;
   overflow-y: auto;
+  overflow-x: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 

@@ -8,7 +8,7 @@
           <!-- Profile Card -->
           <div class="sidebar-card profile-section">
             <div class="profile-header">
-              <div class="avatar-wrap">
+              <div class="avatar-wrap" @click="goToWelcome">
                 <img :src="settings.avatar_url || defaultAvatar" alt="头像" class="profile-avatar" @error="handleAvatarError" />
                 <div class="online-indicator"></div>
               </div>
@@ -175,7 +175,7 @@
 
           <div class="posts-masonry">
             <!-- Featured Post (Large) -->
-            <article class="post-card post-featured" v-if="posts[0]" @click="viewPost(posts[0])">
+            <article class="post-card post-featured" v-if="posts[0]" @click="viewPost(posts[0], '/')">
               <div class="post-image" v-if="posts[0].cover_image">
                 <img :src="posts[0].cover_image" :alt="posts[0].title" />
                 <span class="post-badge">精选</span>
@@ -200,7 +200,7 @@
             </article>
 
             <!-- Regular Posts -->
-            <article class="post-card" v-for="post in posts.slice(1, 7)" :key="post.id" @click="viewPost(post)">
+            <article class="post-card" v-for="post in posts.slice(1, 7)" :key="post.id" @click="viewPost(post, '/')">
               <div class="post-image" v-if="post.cover_image">
                 <img :src="post.cover_image" :alt="post.title" />
               </div>
@@ -274,6 +274,8 @@ import {
 const router = useRouter()
 const route = useRoute()
 
+const emit = defineEmits(['show-welcome'])
+
 const props = defineProps({
   settings: Object,
   socialLinks: Array,
@@ -291,6 +293,10 @@ const selectedPost = ref(null)
 const postContent = ref({})
 const isLoadingPost = ref(false)
 const backTarget = ref('/articles')
+
+const goToWelcome = () => {
+  emit('show-welcome')
+}
 
 const renderedContent = computed(() => {
   if (!postContent.value.content) return ''
@@ -505,7 +511,7 @@ watch(() => route.query.read, async (slug) => {
   background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color);
+  border: 1.5px solid var(--border-color);
   border-radius: 16px;
   padding: 24px;
   transition: all 0.3s ease;
@@ -526,6 +532,7 @@ watch(() => route.query.read, async (slug) => {
   width: 90px;
   height: 90px;
   margin: 0 auto 16px;
+  cursor: pointer;
 }
 
 .profile-avatar {

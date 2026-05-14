@@ -20,6 +20,9 @@
         <router-link to="/settings" class="nav-item" :class="{ active: $route.path === '/settings' }">
           ⚙️ 系统设置
         </router-link>
+        <router-link to="/backgrounds" class="nav-item" :class="{ active: $route.path === '/backgrounds' }">
+          🖼️ 背景图片
+        </router-link>
       </nav>
       <div class="user-info">
         <span>{{ authStore.user?.username }}</span>

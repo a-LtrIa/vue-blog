@@ -10,6 +10,7 @@ import categoriesRoutes from './routes/categories.js'
 import tagsRoutes from './routes/tags.js'
 import settingsRoutes from './routes/settings.js'
 import uploadRoutes from './routes/upload.js'
+import backgroundRoutes, { ensureCache } from './routes/background.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -27,6 +28,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/uploads', express.static(join(__dirname, 'uploads')))
+app.use('/cache/backgrounds', express.static(join(__dirname, 'cache', 'backgrounds')))
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
@@ -38,6 +40,7 @@ app.use('/api/categories', categoriesRoutes)
 app.use('/api/tags', tagsRoutes)
 app.use('/api/settings', settingsRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/background', backgroundRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Error:', err)
@@ -47,4 +50,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`)
   console.log(`📚 API available at http://localhost:${PORT}/api`)
+  ensureCache().then(() => {
+    console.log(`🖼️ Background images cached`)
+  }).catch(err => {
+    console.error('Failed to cache background images:', err.message)
+  })
 })

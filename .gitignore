@@ -43,3 +43,6 @@ data/*.db-shm
 # Uploads
 server/uploads/*
 !server/uploads/.gitkeep
+
+# Background cache
+server/cache/

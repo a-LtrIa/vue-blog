@@ -1,14 +1,13 @@
 <template>
   <div class="welcome-screen">
     <!-- Cinematic Background with Parallax -->
-    <div
+    <!-- <div
       class="cinematic-bg"
       :class="{ 'loaded': bgLoaded }"
       :style="bgLoaded ? { backgroundImage: `url(${backgroundImage})` } : {}"
     >
-      <!-- Vignette effect -->
       <div class="vignette"></div>
-    </div>
+    </div> -->
 
     <!-- Floating particles for atmosphere -->
     <div class="particles">
@@ -76,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const props = defineProps({
   backgroundImage: {
@@ -96,6 +95,7 @@ const defaultAvatar = '/src/assets/avatar.jpg'
 const contentLoaded = ref(false)
 const bgLoaded = ref(false)
 const enterBtn = ref(null)
+const canScrollAway = ref(false)
 
 // 3D tilt effect for avatar
 const avatarTilt = ref({ x: 0, y: 0 })
@@ -195,17 +195,41 @@ onMounted(() => {
     contentLoaded.value = true
     startTypeWriter()
   }, 300)
-  
-  // 添加滚动监听
-  window.addEventListener('wheel', handleScroll, { passive: true })
-  window.addEventListener('touchmove', handleScroll, { passive: true })
+
+  setTimeout(() => {
+    canScrollAway.value = true
+    window.addEventListener('wheel', handleWheel, { passive: true })
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+  }, 1200)
 })
 
-const handleScroll = () => {
-  if (contentLoaded.value) {
+let welcomeTouchStartY = 0
+
+const handleWheel = (e) => {
+  if (canScrollAway.value && contentLoaded.value && e.deltaY > 0) {
     enterBlog()
   }
 }
+
+const handleTouchStart = (e) => {
+  welcomeTouchStartY = e.touches[0].clientY
+}
+
+const handleTouchMove = (e) => {
+  if (canScrollAway.value && contentLoaded.value) {
+    const deltaY = welcomeTouchStartY - e.touches[0].clientY
+    if (deltaY > 30) {
+      enterBlog()
+    }
+  }
+}
+
+onUnmounted(() => {
+  window.removeEventListener('wheel', handleWheel)
+  window.removeEventListener('touchstart', handleTouchStart)
+  window.removeEventListener('touchmove', handleTouchMove)
+})
 </script>
 
 <style scoped>
