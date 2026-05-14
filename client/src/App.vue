@@ -23,17 +23,6 @@
       :bgLoaded="bgLoaded"
     />
 
-    <!-- Background Refresh Button -->
-    <button
-      class="bg-refresh-btn"
-      :class="{ 'refreshing': isRefreshing }"
-      @click="refreshBackground"
-      :title="isRefreshing ? '正在刷新...' : '刷新背景图片'"
-    >
-      <svg class="refresh-icon" :class="{ 'spinning': isRefreshing }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
-      </svg>
-    </button>
   </div>
 </template>
 
@@ -43,7 +32,6 @@ import { settingsApi, categoriesApi, postsApi, tagsApi, backgroundApi } from './
 
 const bgImage = ref('')
 const bgLoaded = ref(false)
-const isRefreshing = ref(false)
 
 const settings = ref({
   site_name: 'ALT的博客',
@@ -74,21 +62,7 @@ const loadBackground = async () => {
   preloadImage(bgImage.value)
 }
 
-const refreshBackground = async () => {
-  if (isRefreshing.value) return
-  isRefreshing.value = true
-  bgLoaded.value = false
 
-  try {
-    await backgroundApi.refresh()
-    await loadBackground()
-  } catch (error) {
-    console.error('刷新背景图片失败', error)
-    bgLoaded.value = true
-  } finally {
-    isRefreshing.value = false
-  }
-}
 
 const fetchData = async () => {
   try {
@@ -224,53 +198,5 @@ body {
   pointer-events: none;
 }
 
-.bg-refresh-btn {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
-  z-index: 999;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  outline: none;
-}
 
-.bg-refresh-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
-  transform: scale(1.1);
-}
-
-.bg-refresh-btn:active {
-  transform: scale(0.95);
-}
-
-.bg-refresh-btn.refreshing {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.refresh-icon {
-  width: 18px;
-  height: 18px;
-}
-
-.refresh-icon.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 </style>
