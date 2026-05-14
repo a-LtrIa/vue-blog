@@ -19,17 +19,72 @@
       <div class="nav-right">
         <div class="nav-links">
           <a
-            v-for="link in navLinks"
-            :key="link.path"
-            :href="link.path"
+            href="/"
             class="nav-link"
-            :class="{ active: isActive(link.path) }"
-            @click.prevent="navigate(link.path)"
+            :class="{ active: isActive('/') }"
+            @click.prevent="navigate('/')"
           >
-            <component :is="link.icon" :size="16" class="link-icon" />
-            <span class="link-text">{{ link.name }}</span>
+            <Home :size="16" class="link-icon" />
+            <span class="link-text">主页</span>
             <span class="link-indicator"></span>
           </a>
+
+          <div
+            class="nav-dropdown"
+            @mouseenter="showFileDropdown = true"
+            @mouseleave="showFileDropdown = false"
+          >
+            <span
+              class="nav-link dropdown-trigger"
+              :class="{ active: isFileActive() }"
+            >
+              <FolderOpen :size="16" class="link-icon" />
+              <span class="link-text">文件</span>
+              <ChevronDown :size="12" class="dropdown-arrow" :class="{ rotated: showFileDropdown }" />
+              <span class="link-indicator"></span>
+            </span>
+            <div class="dropdown-bridge"></div>
+            <transition name="dropdown-fade">
+              <div v-if="showFileDropdown" class="dropdown-menu">
+                <a
+                  href="/articles"
+                  class="dropdown-item"
+                  :class="{ active: isActive('/articles') }"
+                  @click.prevent="navigate('/articles')"
+                >
+                  <FileText :size="15" />
+                  <span>文章</span>
+                </a>
+                <a
+                  href="/tools"
+                  class="dropdown-item"
+                  :class="{ active: isActive('/tools') }"
+                  @click.prevent="navigate('/tools')"
+                >
+                  <Wrench :size="15" />
+                  <span>妙妙工具</span>
+                </a>
+                <a
+                  href="/resources"
+                  class="dropdown-item"
+                  :class="{ active: isActive('/resources') }"
+                  @click.prevent="navigate('/resources')"
+                >
+                  <Share2 :size="15" />
+                  <span>资源分享</span>
+                </a>
+              </div>
+            </transition>
+          </div>
+
+          <span
+            class="nav-link"
+            @click="showFriendsModal = true"
+          >
+            <Link :size="16" class="link-icon" />
+            <span class="link-text">友联</span>
+            <span class="link-indicator"></span>
+          </span>
         </div>
 
         <button class="action-btn search-btn" @click="toggleSearch" title="搜索">
@@ -50,16 +105,48 @@
       <div v-if="showMobileMenu" class="mobile-menu">
         <div class="mobile-menu-content">
           <a
-            v-for="link in navLinks"
-            :key="link.path"
-            :href="link.path"
+            href="/"
             class="mobile-link"
-            :class="{ active: isActive(link.path) }"
-            @click.prevent="navigate(link.path)"
+            :class="{ active: isActive('/') }"
+            @click.prevent="navigate('/')"
           >
-            <component :is="link.icon" :size="18" class="mobile-link-icon" />
-            <span class="mobile-link-text">{{ link.name }}</span>
+            <Home :size="18" class="mobile-link-icon" />
+            <span class="mobile-link-text">主页</span>
           </a>
+          <a
+            href="/articles"
+            class="mobile-link"
+            :class="{ active: isActive('/articles') }"
+            @click.prevent="navigate('/articles')"
+          >
+            <FileText :size="18" class="mobile-link-icon" />
+            <span class="mobile-link-text">文章</span>
+          </a>
+          <a
+            href="/tools"
+            class="mobile-link"
+            :class="{ active: isActive('/tools') }"
+            @click.prevent="navigate('/tools')"
+          >
+            <Wrench :size="18" class="mobile-link-icon" />
+            <span class="mobile-link-text">妙妙工具</span>
+          </a>
+          <a
+            href="/resources"
+            class="mobile-link"
+            :class="{ active: isActive('/resources') }"
+            @click.prevent="navigate('/resources')"
+          >
+            <Share2 :size="18" class="mobile-link-icon" />
+            <span class="mobile-link-text">资源分享</span>
+          </a>
+          <span
+            class="mobile-link"
+            @click="showFriendsModal = true; showMobileMenu = false"
+          >
+            <Link :size="18" class="mobile-link-icon" />
+            <span class="mobile-link-text">友联</span>
+          </span>
         </div>
       </div>
     </transition>
@@ -112,13 +199,47 @@
         </div>
       </div>
     </transition>
+
+    <Teleport to="body">
+      <transition name="modal-backdrop">
+        <div v-if="showFriendsModal" class="friends-overlay" @click="showFriendsModal = false">
+          <transition name="modal-pop">
+            <div v-if="showFriendsModal" class="friends-modal" @click.stop>
+              <button class="friends-close" @click="showFriendsModal = false">
+                <X :size="16" />
+              </button>
+              <h3 class="friends-title">友情链接</h3>
+              <div class="friends-list">
+                <a
+                  v-for="friend in friendsList"
+                  :key="friend.id"
+                  :href="friend.link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="friend-item"
+                  :title="friend.name"
+                >
+                  <img
+                    :src="friend.icon"
+                    :alt="friend.name"
+                    class="friend-icon"
+                    @error="e => e.target.style.display = 'none'"
+                  />
+                  <span class="friend-label">{{ friend.name }}</span>
+                </a>
+              </div>
+            </div>
+          </transition>
+        </div>
+      </transition>
+    </Teleport>
   </nav>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Home, FileText, Search } from 'lucide-vue-next'
+import { Home, FileText, Search, FolderOpen, ChevronDown, Wrench, Share2, Link, X } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -142,6 +263,8 @@ const isHidden = ref(false)
 const lastScrollY = ref(0)
 const showMobileMenu = ref(false)
 const showSearch = ref(false)
+const showFileDropdown = ref(false)
+const showFriendsModal = ref(false)
 const searchQuery = ref('')
 const searchResults = ref([])
 const searchInput = ref(null)
@@ -149,10 +272,20 @@ const selectedIndex = ref(0)
 
 const logoText = computed(() => props.siteName.charAt(0).toUpperCase())
 
-const navLinks = [
-  { name: '主页', path: '/', icon: Home },
-  { name: '文章', path: '/articles', icon: FileText }
+const friendsList = [
+  { id: 1, name: 'Vue.js', icon: 'https://vuejs.org/logo.svg', link: 'https://vuejs.org/' },
+  { id: 2, name: 'Vite', icon: 'https://vitejs.dev/logo.svg', link: 'https://vitejs.dev/' },
+  { id: 3, name: 'React', icon: 'https://react.dev/favicon-32x32.png', link: 'https://react.dev/' },
+  { id: 4, name: 'GitHub', icon: 'https://github.githubassets.com/favicons/favicon-dark.svg', link: 'https://github.com/' },
+  { id: 5, name: 'MDN', icon: 'https://developer.mozilla.org/favicon-48x48.cbbd161b.png', link: 'https://developer.mozilla.org/' },
+  { id: 6, name: 'Tailwind CSS', icon: 'https://tailwindcss.com/favicons/favicon-32x32.png', link: 'https://tailwindcss.com/' },
+  { id: 7, name: 'Node.js', icon: 'https://nodejs.org/static/images/favicons/favicon.png', link: 'https://nodejs.org/' },
+  { id: 8, name: 'TypeScript', icon: 'https://www.typescriptlang.org/favicon-32x32.png', link: 'https://www.typescriptlang.org/' }
 ]
+
+const isFileActive = () => {
+  return ['/articles', '/tools', '/resources'].some(p => route.path.startsWith(p))
+}
 
 const isActive = (path) => {
   if (path === '/') {
@@ -403,6 +536,88 @@ onUnmounted(() => {
 
 .nav-link.active .link-indicator {
   transform: translateX(-50%) scaleX(1);
+}
+
+/* Dropdown */
+.nav-dropdown {
+  position: relative;
+}
+
+.dropdown-trigger {
+  cursor: default;
+}
+
+.dropdown-arrow {
+  transition: transform 0.25s ease;
+  opacity: 0.5;
+}
+
+.dropdown-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.dropdown-bridge {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 12px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.dropdown-item.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.dropdown-fade-enter-active {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dropdown-fade-leave-active {
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dropdown-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.95);
+}
+
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.97);
 }
 
 /* Action Buttons */
@@ -758,5 +973,139 @@ onUnmounted(() => {
   .search-btn {
     display: flex;
   }
+}
+
+/* Friends Modal */
+.friends-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.friends-modal {
+  position: relative;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  max-width: 520px;
+  width: calc(100% - 48px);
+}
+
+.friends-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.friends-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.friends-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.friends-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.friend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  text-decoration: none;
+  color: #ffffff;
+  transition: all 0.3s ease;
+  min-width: 72px;
+}
+
+.friend-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.friend-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.friend-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+
+.friend-item:hover .friend-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Modal transitions */
+.modal-backdrop-enter-active {
+  transition: all 0.3s ease;
+}
+
+.modal-backdrop-leave-active {
+  transition: all 0.25s ease;
+}
+
+.modal-backdrop-enter-from,
+.modal-backdrop-leave-to {
+  opacity: 0;
+}
+
+.modal-pop-enter-active {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-pop-leave-active {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-pop-enter-from {
+  opacity: 0;
+  transform: scale(0.9) translateY(10px);
+}
+
+.modal-pop-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(5px);
 }
 </style>
