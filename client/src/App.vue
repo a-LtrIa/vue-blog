@@ -20,6 +20,7 @@
       :settings="settings"
       :socialLinks="socialLinks"
       :bgImage="bgImage"
+      :bgLoaded="bgLoaded"
     />
 
     <!-- Background Refresh Button -->

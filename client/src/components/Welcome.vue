@@ -1,13 +1,12 @@
 <template>
   <div class="welcome-screen">
-    <!-- Cinematic Background with Parallax -->
-    <!-- <div
+    <div
       class="cinematic-bg"
       :class="{ 'loaded': bgLoaded }"
       :style="bgLoaded ? { backgroundImage: `url(${backgroundImage})` } : {}"
     >
       <div class="vignette"></div>
-    </div> -->
+    </div>
 
     <!-- Floating particles for atmosphere -->
     <div class="particles">
@@ -86,14 +85,14 @@ const props = defineProps({
     type: String,
     default: 'ALT的博客'
   },
-  avatarUrl: String
+  avatarUrl: String,
+  bgLoaded: Boolean
 })
 
 const emit = defineEmits(['scroll-down'])
 
 const defaultAvatar = '/src/assets/avatar.jpg'
 const contentLoaded = ref(false)
-const bgLoaded = ref(false)
 const enterBtn = ref(null)
 const canScrollAway = ref(false)
 
@@ -180,17 +179,7 @@ const getParticleStyle = (n) => ({
   opacity: 0.15
 })
 
-// Preload background image
-const preloadImage = () => {
-  const img = new Image()
-  img.onload = () => {
-    bgLoaded.value = true
-  }
-  img.src = props.backgroundImage
-}
-
 onMounted(() => {
-  preloadImage()
   setTimeout(() => {
     contentLoaded.value = true
     startTypeWriter()
@@ -198,15 +187,16 @@ onMounted(() => {
 
   setTimeout(() => {
     canScrollAway.value = true
-    window.addEventListener('wheel', handleWheel, { passive: true })
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    window.addEventListener('touchstart', handleTouchStart, { passive: false })
+    window.addEventListener('touchmove', handleTouchMove, { passive: false })
   }, 1200)
 })
 
 let welcomeTouchStartY = 0
 
 const handleWheel = (e) => {
+  e.preventDefault()
   if (canScrollAway.value && contentLoaded.value && e.deltaY > 0) {
     enterBlog()
   }
@@ -217,6 +207,7 @@ const handleTouchStart = (e) => {
 }
 
 const handleTouchMove = (e) => {
+  e.preventDefault()
   if (canScrollAway.value && contentLoaded.value) {
     const deltaY = welcomeTouchStartY - e.touches[0].clientY
     if (deltaY > 30) {
@@ -244,6 +235,8 @@ onUnmounted(() => {
   justify-content: center;
   z-index: 100;
   overflow: hidden;
+  background-color: #0f0f1a;
+  overscroll-behavior: none;
 }
 
 /* Cinematic Background */
@@ -274,7 +267,8 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+  background:
+    radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.85) 100%);
   pointer-events: none;
 }
 

@@ -34,9 +34,11 @@
       <div v-if="singleCategoryView" class="single-category-view">
         <div class="single-category-posts">
           <div
-            v-for="post in singleCategoryPosts"
+            v-for="(post, index) in singleCategoryPosts"
             :key="post.id"
             class="single-post-card"
+            :class="{ 'animate-in': isAnimated }"
+            :style="{ animationDelay: `${index * 0.08}s` }"
             @click="viewPost(post)"
           >
             <div class="single-post-body">
@@ -60,10 +62,11 @@
       <div v-if="viewMode === 'folder' && !singleCategoryView" class="folder-mode">
         <div class="folder-grid">
           <div
-            v-for="cat in categoriesWithPosts"
+            v-for="(cat, index) in categoriesWithPosts"
             :key="cat.id"
             class="folder-card"
-            :class="{ expanded: expandedFolder === cat.id }"
+            :class="{ expanded: expandedFolder === cat.id, 'animate-in': isAnimated }"
+            :style="{ animationDelay: `${index * 0.08}s` }"
           >
             <div class="folder-header" @click="toggleFolder(cat.id)" @dblclick="enterFolder(cat)">
               <div class="folder-icon-wrap">
@@ -119,9 +122,11 @@
               <h3 class="timeline-label">{{ group.label }}</h3>
               <div class="timeline-cards">
                 <div
-                  v-for="post in group.posts"
+                  v-for="(post, index) in group.posts"
                   :key="post.id"
                   class="timeline-card"
+                  :class="{ 'animate-in': isAnimated }"
+                  :style="{ animationDelay: `${index * 0.06}s` }"
                   @click="viewPost(post)"
                 >
                   <div class="timeline-card-body">
@@ -152,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   ArrowLeft,
@@ -175,6 +180,7 @@ const activeCategory = ref('')
 const singleCategoryView = ref(false)
 const singleCategoryName = ref('')
 const singleCategoryPosts = ref([])
+const isAnimated = ref(false)
 
 const categoriesWithPosts = computed(() => {
   return allCategories.value.map(cat => ({
@@ -280,6 +286,10 @@ const loadData = async () => {
         expandedFolder.value = matchedCat.id
       }
     }
+
+    setTimeout(() => {
+      isAnimated.value = true
+    }, 50)
   } catch (error) {
     console.error('加载文章仓库失败', error)
   }
@@ -287,6 +297,13 @@ const loadData = async () => {
 
 onMounted(() => {
   loadData()
+})
+
+watch([viewMode, singleCategoryView], () => {
+  isAnimated.value = false
+  setTimeout(() => {
+    isAnimated.value = true
+  }, 50)
 })
 </script>
 
@@ -301,6 +318,21 @@ onMounted(() => {
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 24px;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Header */
@@ -407,6 +439,7 @@ onMounted(() => {
   border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s ease;
+  opacity: 0;
 }
 
 .folder-card:hover {
@@ -636,6 +669,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  opacity: 0;
 }
 
 .timeline-card::after {
@@ -726,6 +760,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  opacity: 0;
 }
 
 .single-post-card::after {
