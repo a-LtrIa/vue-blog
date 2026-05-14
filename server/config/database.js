@@ -71,6 +71,12 @@ db.exec(`
     icon TEXT,
     sort_order INTEGER DEFAULT 0
   );
+
+  CREATE TABLE IF NOT EXISTS visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT UNIQUE NOT NULL,
+    count INTEGER DEFAULT 0
+  );
 `)
 
 // Initialize default data in async IIFE

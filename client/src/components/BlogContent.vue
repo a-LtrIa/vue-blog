@@ -8,7 +8,7 @@
           <!-- Profile Card -->
           <div class="sidebar-card profile-section">
             <div class="profile-header">
-              <div class="avatar-wrap" @click="goToWelcome">
+              <div class="avatar-wrap" @click="showProfileCard = true">
                 <img :src="settings.avatar_url || defaultAvatar" alt="头像" class="profile-avatar" @error="handleAvatarError" />
                 <div class="online-indicator"></div>
               </div>
@@ -53,7 +53,7 @@
               </div>
               <div class="detail-item">
                 <span class="detail-label">运行时间</span>
-                <span class="detail-value">{{ runningDays }} 天</span>
+                <span class="detail-value">{{ runningTime }}</span>
               </div>
               <div class="detail-item">
                 <span class="detail-label">最后更新</span>
@@ -61,7 +61,8 @@
               </div>
             </div>
           </div>
-
+          <!-- Visits Chart Card -->
+          <VisitsChart />
           <!-- Social Links Card -->
           <div class="sidebar-card social-section" v-if="socialLinks.length">
             <h3 class="card-title">
@@ -76,18 +77,16 @@
             </div>
           </div>
 
+          <!-- Announcement Card -->
+          <AnnouncementCard :announcements="announcements" />
+
           <!-- Hot Tags Card -->
-          <div class="sidebar-card tags-section">
-            <h3 class="card-title">
-              <Tag class="title-icon" :size="16" />
-              热门标签
-            </h3>
-            <div class="tag-cloud">
-              <span v-for="(tag, index) in tags.slice(0, 12)" :key="tag.id" class="tag-item" :class="`tag-size-${(index % 3) + 1}`">
-                {{ tag.name }}
-              </span>
-            </div>
-          </div>
+          <TagsCard :tags="tags" />
+
+          <!-- Background Actions Card -->
+          <BackgroundActions :bg-image="bgImage" />
+
+
         </div>
       </aside>
 
@@ -200,7 +199,7 @@
             </article>
 
             <!-- Regular Posts -->
-            <article class="post-card" v-for="post in posts.slice(1, 7)" :key="post.id" @click="viewPost(post, '/')">
+            <article class="post-card" v-for="post in posts.slice(1, 6)" :key="post.id" @click="viewPost(post, '/')">
               <div class="post-image" v-if="post.cover_image">
                 <img :src="post.cover_image" :alt="post.title" />
               </div>
@@ -229,6 +228,12 @@
             <p>暂无文章，敬请期待...</p>
           </div>
         </section>
+
+        <!-- Tools Section -->
+        <ToolsCard :tools="tools" />
+
+        <!-- Resources Section -->
+        <ResourcesCard :resources="resources" />
         </template>
       </main>
     </div>
@@ -238,18 +243,27 @@
       <p class="copyright">© 2025 {{ settings.site_name || '我的博客' }}</p>
       <p class="credit">Made with Vue.js</p>
     </footer>
+
+    <ProfileCard
+      :visible="showProfileCard"
+      :settings="settings"
+      :socialLinks="socialLinks"
+      :posts="posts"
+      :categories="categories"
+      :tags="tags"
+      @close="showProfileCard = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { marked } from 'marked'
 import { postsApi } from '../api/index.js'
 import {
   Info,
   Link2,
-  Tag,
   Code2,
   Server,
   Palette,
@@ -261,27 +275,33 @@ import {
   PenLine,
   FileText,
   Github,
-  Twitter,
   MessageCircle,
-  Mail,
   Globe,
   Rss,
   MessageSquare,
   ArrowLeft,
   Eye
 } from 'lucide-vue-next'
+import AnnouncementCard from './AnnouncementCard.vue'
+import TagsCard from './TagsCard.vue'
+import BackgroundActions from './BackgroundActions.vue'
+import ProfileCard from './ProfileCard.vue'
+import VisitsChart from './VisitsChart.vue'
+import ToolsCard from './ToolsCard.vue'
+import ResourcesCard from './ResourcesCard.vue'
+import { toolsData } from '../data/tools.js'
+import { resourcesData } from '../data/resources.js'
 
 const router = useRouter()
 const route = useRoute()
-
-const emit = defineEmits(['show-welcome'])
 
 const props = defineProps({
   settings: Object,
   socialLinks: Array,
   categories: Array,
   posts: Array,
-  tags: Array
+  tags: Array,
+  bgImage: String
 })
 
 const defaultAvatar = '/src/assets/avatar.jpg'
@@ -293,10 +313,57 @@ const selectedPost = ref(null)
 const postContent = ref({})
 const isLoadingPost = ref(false)
 const backTarget = ref('/articles')
+const showProfileCard = ref(false)
 
-const goToWelcome = () => {
-  emit('show-welcome')
-}
+// 公告数据
+const announcements = ref([
+  {
+    id: 1,
+    title: '博客全新改版上线，采用玻璃拟态设计',
+    content: '经过数周的努力，博客终于完成了全新改版！这次改版采用了流行的玻璃拟态设计风格，配合电影感的视觉效果，希望能给大家带来更好的阅读体验。',
+    created_at: '2025-05-10T08:00:00Z'
+  },
+  {
+    id: 2,
+    title: '新增公告功能，随时了解网站动态',
+    content: '为了方便大家及时了解网站的最新动态，我们新增了公告功能。重要更新、维护通知等都会在这里发布。',
+    created_at: '2025-05-08T14:30:00Z'
+  },
+  {
+    id: 3,
+    title: '系统维护通知：本周日凌晨 2-4 点',
+    content: '为了提升网站性能，我们将于本周日凌晨 2-4 点进行系统维护。维护期间网站可能无法访问，请提前做好准备。',
+    created_at: '2025-05-05T10:00:00Z'
+  },
+  {
+    id: 4,
+    title: '如何写出高质量的技术博客文章',
+    content: '分享一些写作心得：1. 选题要聚焦具体问题；2. 结构清晰，层次分明；3. 代码示例要可运行；4. 配图要清晰美观。',
+    created_at: '2025-05-01T16:20:00Z'
+  },
+  {
+    id: 5,
+    title: '推荐几个好用的设计资源网站',
+    content: '1. Figma - 协作设计神器；2. Unsplash - 高质量免费图片；3. Iconify - 海量图标库；4. Coolors - 配色方案生成器。',
+    created_at: '2025-04-28T09:15:00Z'
+  },
+  {
+    id: 6,
+    title: 'Vue 3 Composition API 最佳实践',
+    content: '在使用 Vue 3 的 Composition API 时，建议：1. 合理拆分 composable；2. 使用 ref 和 reactive 要有区分；3. 注意生命周期钩子的使用场景。',
+    created_at: '2025-04-25T11:30:00Z'
+  },
+  {
+    id: 7,
+    title: '网站性能优化完成，加载速度提升 40%',
+    content: '通过图片懒加载、代码分割、CDN 加速等手段，网站整体加载速度提升了 40%。感谢大家的耐心等待！',
+    created_at: '2025-04-20T08:00:00Z'
+  }
+])
+
+const tools = ref(toolsData)
+
+const resources = ref(resourcesData)
 
 const renderedContent = computed(() => {
   if (!postContent.value.content) return ''
@@ -307,10 +374,26 @@ const totalViews = computed(() => {
   return props.posts.reduce((sum, post) => sum + (post.view_count || 0), 0)
 })
 
-const runningDays = computed(() => {
+const runningTime = ref('')
+
+const updateRunningTime = () => {
   const startDate = new Date('2024-01-01')
   const now = new Date()
-  return Math.floor((now - startDate) / (1000 * 60 * 60 * 24))
+  const diff = now - startDate
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+  runningTime.value = `${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒`
+}
+
+let runningTimer = null
+onMounted(() => {
+  updateRunningTime()
+  runningTimer = setInterval(updateRunningTime, 1000)
+})
+onUnmounted(() => {
+  if (runningTimer) clearInterval(runningTimer)
 })
 
 const lastUpdate = computed(() => {
@@ -336,24 +419,46 @@ const getCategoryIcon = (name) => {
   return categoryIcons[name] || FileText
 }
 
+// 哔哩哔哩 SVG 图标组件
+const BilibiliIcon = {
+  name: 'BilibiliIcon',
+  props: ['size'],
+  render() {
+    const size = this.size || 22
+    return h('svg', {
+      xmlns: 'http://www.w3.org/2000/svg',
+      width: size,
+      height: size,
+      viewBox: '0 0 512 512',
+      fill: 'currentColor'
+    }, [
+      h('path', {
+        d: 'M488.6 104.1C505.3 122.2 513 143.8 511.9 169.8V372.2C511.5 398.6 502.7 420.3 485.4 437.3C468.2 454.3 446.3 463.2 419.9 464H92.02C65.57 463.2 43.81 454.2 26.74 436.8C9.682 419.4 .7667 396.5 0 368.2V169.8C.7667 143.8 9.682 122.2 26.74 104.1C43.81 87.75 65.57 78.77 92.02 78H121.4L96.05 52.19C90.3 46.46 87.42 39.19 87.42 30.4C87.42 21.6 90.3 14.34 96.05 8.603C101.8 2.868 109.1 0 117.9 0C126.7 0 134 2.868 139.8 8.603L213.1 78H301.1L375.6 8.603C381.7 2.868 389.2 0 398 0C406.8 0 414.1 2.868 419.9 8.603C425.6 14.34 428.5 21.6 428.5 30.4C428.5 39.19 425.6 46.46 419.9 52.19L394.6 78L423.9 78C450.3 78.77 471.9 87.75 488.6 104.1H488.6zM449.8 173.8C449.4 164.2 446.1 156.4 439.1 150.3C433.9 144.2 425.1 140.9 416.4 140.5H96.05C86.46 140.9 78.6 144.2 72.47 150.3C66.33 156.4 63.07 164.2 62.69 173.8V368.2C62.69 377.4 65.95 385.2 72.47 391.7C78.99 398.2 86.85 401.5 96.05 401.5H416.4C425.6 401.5 433.4 398.2 439.7 391.7C446 385.2 449.4 377.4 449.8 368.2L449.8 173.8zM185.5 216.5C191.8 222.8 195.2 230.6 195.6 239.7V273C195.2 282.2 191.9 289.9 185.8 296.2C179.6 302.5 171.8 305.7 162.2 305.7C152.6 305.7 144.7 302.5 138.6 296.2C132.5 289.9 129.2 282.2 128.8 273V239.7C129.2 230.6 132.6 222.8 138.9 216.5C145.2 210.2 152.1 206.9 162.2 206.5C171.4 206.9 179.2 210.2 185.5 216.5H185.5zM377 216.5C383.3 222.8 386.7 230.6 387.1 239.7V273C386.7 282.2 383.4 289.9 377.3 296.2C371.2 302.5 363.3 305.7 353.7 305.7C344.1 305.7 336.3 302.5 330.1 296.2C323.1 289.9 320.7 282.2 320.4 273V239.7C320.7 230.6 324.1 222.8 330.4 216.5C336.7 210.2 344.5 206.9 353.7 206.5C362.9 206.9 370.7 210.2 377 216.5H377z'
+      })
+    ])
+  }
+}
+
 const socialIconMap = {
   'GitHub': Github,
   'github': Github,
-  'Twitter': Twitter,
-  'twitter': Twitter,
-  'X': Twitter,
   '微信': MessageCircle,
   'WeChat': MessageCircle,
-  'Email': Mail,
-  'email': Mail,
-  '邮箱': Mail,
   'Website': Globe,
   'website': Globe,
   '网站': Globe,
   'RSS': Rss,
   'rss': Rss,
   'Discord': MessageSquare,
-  'discord': MessageSquare
+  'discord': MessageSquare,
+  '哔哩哔哩': BilibiliIcon,
+  'bilibili': BilibiliIcon,
+  'Bilibili': BilibiliIcon,
+  'B站': BilibiliIcon,
+  '社媒': Globe,
+  '社交媒体': Globe,
+  'Social': Globe,
+  'social': Globe
 }
 
 const getSocialIcon = (platform) => {
@@ -722,34 +827,6 @@ watch(() => route.query.read, async (slug) => {
   font-size: 11px;
   color: var(--text-secondary);
 }
-
-/* Tag Cloud */
-.tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tag-item {
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  border-radius: 100px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tag-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--border-hover);
-  color: var(--text-primary);
-}
-
-.tag-size-1 { font-size: 11px; }
-.tag-size-2 { font-size: 13px; background: rgba(255, 255, 255, 0.08); }
-.tag-size-3 { font-size: 12px; }
 
 /* ===== Right Content ===== */
 .right-content {

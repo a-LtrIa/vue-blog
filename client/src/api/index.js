@@ -29,4 +29,9 @@ export const backgroundApi = {
   refresh: () => api.post('/background/refresh')
 }
 
+export const visitsApi = {
+  record: () => api.post('/visits'),
+  getStats: () => api.get('/visits/stats')
+}
+
 export default api

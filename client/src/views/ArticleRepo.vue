@@ -8,7 +8,8 @@
         </button>
         <div class="repo-title-area">
           <h1 class="repo-title">{{ singleCategoryView ? singleCategoryName : '文章仓库' }}</h1>
-          <p class="repo-subtitle" v-if="!singleCategoryView && activeCategory">分类：{{ activeCategory }}</p>
+          <p class="repo-subtitle" v-if="!singleCategoryView && activeTag">标签：{{ activeTag }}</p>
+          <p class="repo-subtitle" v-if="!singleCategoryView && activeCategory && !activeTag">分类：{{ activeCategory }}</p>
         </div>
         <div class="mode-toggle" v-if="!singleCategoryView">
           <button
@@ -148,9 +149,10 @@
         </div>
       </div>
 
-      <div v-if="allPosts.length === 0" class="repo-empty">
+      <div v-if="filteredPosts.length === 0" class="repo-empty">
         <FileText :size="48" class="empty-icon" />
-        <p>暂无文章</p>
+        <p v-if="activeTag">该标签暂无文章</p>
+        <p v-else>暂无文章</p>
       </div>
     </div>
   </div>
@@ -177,21 +179,29 @@ const expandedFolder = ref(null)
 const allPosts = ref([])
 const allCategories = ref([])
 const activeCategory = ref('')
+const activeTag = ref('')
 const singleCategoryView = ref(false)
 const singleCategoryName = ref('')
 const singleCategoryPosts = ref([])
 const isAnimated = ref(false)
 
+const filteredPosts = computed(() => {
+  if (!activeTag.value) return allPosts.value
+  return allPosts.value.filter(post =>
+    post.tags?.some(t => (t.name || t) === activeTag.value)
+  )
+})
+
 const categoriesWithPosts = computed(() => {
   return allCategories.value.map(cat => ({
     ...cat,
-    posts: allPosts.value.filter(p => p.category_id === cat.id)
+    posts: filteredPosts.value.filter(p => p.category_id === cat.id)
   }))
 })
 
 const timelineGroups = computed(() => {
   const groups = {}
-  const posts = [...allPosts.value].sort(
+  const posts = [...filteredPosts.value].sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   )
 
@@ -223,6 +233,9 @@ const goBack = () => {
     singleCategoryView.value = false
     singleCategoryName.value = ''
     singleCategoryPosts.value = []
+    router.replace({ path: '/articles', query: {} })
+  } else if (activeTag.value) {
+    activeTag.value = ''
     router.replace({ path: '/articles', query: {} })
   } else {
     router.push('/')
@@ -267,6 +280,11 @@ const loadData = async () => {
 
     const catParam = route.query.category
     const viewParam = route.query.view
+    const tagParam = route.query.tag
+
+    if (tagParam) {
+      activeTag.value = tagParam
+    }
 
     if (catParam && viewParam === 'single') {
       const matchedCat = allCategories.value.find(

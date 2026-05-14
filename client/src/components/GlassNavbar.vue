@@ -134,6 +134,8 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['show-welcome'])
+
 const isScrolled = ref(false)
 const isCollapsed = ref(false)
 const isHidden = ref(false)
@@ -178,7 +180,7 @@ const navigate = (path) => {
 }
 
 const goHome = () => {
-  router.push('/')
+  emit('show-welcome')
 }
 
 const goToPost = (post) => {

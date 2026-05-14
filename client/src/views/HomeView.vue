@@ -6,6 +6,7 @@
         v-if="!showWelcome"
         :siteName="settings.site_name"
         :posts="posts"
+        @show-welcome="showWelcomeScreen"
       />
     </transition>
 
@@ -29,7 +30,7 @@
         :categories="categories"
         :posts="posts"
         :tags="tags"
-        @show-welcome="showWelcomeScreen"
+        :bg-image="bgImage"
       />
     </div>
   </div>

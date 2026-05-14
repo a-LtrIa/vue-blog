@@ -11,6 +11,7 @@ import tagsRoutes from './routes/tags.js'
 import settingsRoutes from './routes/settings.js'
 import uploadRoutes from './routes/upload.js'
 import backgroundRoutes, { ensureCache } from './routes/background.js'
+import visitsRoutes from './routes/visits.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -41,6 +42,7 @@ app.use('/api/tags', tagsRoutes)
 app.use('/api/settings', settingsRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/background', backgroundRoutes)
+app.use('/api/visits', visitsRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Error:', err)
