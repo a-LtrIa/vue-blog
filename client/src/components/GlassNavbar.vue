@@ -7,7 +7,7 @@
     </defs>
   </svg>
 
-  <nav class="glass-navbar" :class="{ 'nav-scrolled': isScrolled, 'nav-hidden': isHidden }">
+  <nav class="glass-navbar" :class="{ 'nav-collapsed': isCollapsed, 'nav-scrolled': isScrolled, 'nav-hidden': isHidden }">
     <div class="nav-container">
       <a href="/" class="nav-logo" @click.prevent="goHome">
         <div class="logo-icon">
@@ -135,6 +135,7 @@ const props = defineProps({
 })
 
 const isScrolled = ref(false)
+const isCollapsed = ref(false)
 const isHidden = ref(false)
 const lastScrollY = ref(0)
 const showMobileMenu = ref(false)
@@ -230,7 +231,8 @@ const handleScroll = () => {
     isHidden.value = false
   }
 
-  isScrolled.value = currentScrollY > 50
+  isCollapsed.value = currentScrollY > 30
+  isScrolled.value = currentScrollY > 120
   lastScrollY.value = currentScrollY
 }
 
@@ -269,8 +271,19 @@ onUnmounted(() => {
   right: 0;
   z-index: 1000;
   padding: 14px 0;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    padding 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    -webkit-backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   transform: translateY(0);
+}
+
+.glass-navbar.nav-collapsed {
+  padding: 8px 0;
 }
 
 .glass-navbar.nav-scrolled {

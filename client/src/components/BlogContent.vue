@@ -400,46 +400,75 @@ const goToCategory = (category) => {
   router.push(`/articles?category=${encodeURIComponent(category.name)}&view=single`)
 }
 
-// 同步滚动效果 - 左右两侧完全同步
-const handleScroll = () => {
+let rafId = null
+let cachedSidebarHeight = 0
+let cachedRightHeight = 0
+let cachedLayoutTop = 0
+let cachedMaxTranslate = 0
+
+const updateLayoutCache = () => {
   if (!leftSidebarRef.value || !sidebarInnerRef.value || !mainLayoutRef.value) return
 
   const sidebarInner = sidebarInnerRef.value
   const layout = mainLayoutRef.value
-
-  const sidebarHeight = sidebarInner.offsetHeight
   const rightContent = layout.querySelector('.right-content')
-  const rightHeight = rightContent ? rightContent.offsetHeight : 0
 
-  // 只有当右侧内容比左侧高时才需要同步滚动
-  if (rightHeight > sidebarHeight) {
-    const scrollTop = window.scrollY
-    const layoutTop = layout.offsetTop
-    const navHeight = 100
-    const maxTranslate = rightHeight - sidebarHeight
+  cachedSidebarHeight = sidebarInner.offsetHeight
+  cachedRightHeight = rightContent ? rightContent.offsetHeight : 0
+  cachedLayoutTop = layout.offsetTop
+  cachedMaxTranslate = Math.max(0, cachedRightHeight - cachedSidebarHeight)
+}
 
-    // 计算当前滚动在布局区域内的进度
-    if (scrollTop > layoutTop - navHeight) {
-      const scrollProgress = (scrollTop - layoutTop + navHeight) / (rightHeight - window.innerHeight + navHeight + 100)
-      const clampedProgress = Math.max(0, Math.min(1, scrollProgress))
-      const translateY = clampedProgress * maxTranslate
-      sidebarInner.style.transform = `translateY(${translateY}px)`
-    } else {
-      sidebarInner.style.transform = 'translateY(0)'
-    }
+const applySidebarTransform = () => {
+  if (!sidebarInnerRef.value) return
+
+  const sidebarInner = sidebarInnerRef.value
+  const navHeight = 100
+
+  if (cachedMaxTranslate <= 0) {
+    sidebarInner.style.transform = 'translateY(0)'
+    return
+  }
+
+  const scrollTop = window.scrollY
+
+  if (scrollTop > cachedLayoutTop - navHeight) {
+    const scrollProgress = (scrollTop - cachedLayoutTop + navHeight) / (cachedRightHeight - window.innerHeight + navHeight + 100)
+    const clampedProgress = Math.max(0, Math.min(1, scrollProgress))
+    const translateY = Math.round(clampedProgress * cachedMaxTranslate)
+    sidebarInner.style.transform = `translateY(${translateY}px)`
   } else {
     sidebarInner.style.transform = 'translateY(0)'
   }
 }
 
+const handleScroll = () => {
+  if (rafId) return
+  rafId = requestAnimationFrame(() => {
+    rafId = null
+    applySidebarTransform()
+  })
+}
+
+const handleResize = () => {
+  updateLayoutCache()
+  applySidebarTransform()
+}
+
 onMounted(() => {
+  updateLayoutCache()
+  applySidebarTransform()
   window.addEventListener('scroll', handleScroll, { passive: true })
-  // 初始化时执行一次
-  setTimeout(handleScroll, 100)
+  window.addEventListener('resize', handleResize, { passive: true })
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', handleResize)
+  if (rafId) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
 })
 
 // 监听路由参数，从仓库返回时自动打开文章
@@ -504,7 +533,8 @@ watch(() => route.query.read, async (slug) => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  will-change: transform;
+  transform: translateY(0) translateZ(0);
+  backface-visibility: hidden;
 }
 
 .sidebar-card {
