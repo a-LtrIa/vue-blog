@@ -42,9 +42,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ArrowLeft, ExternalLink, Wrench, Palette, Code2, Image, Type, Calculator, QrCode, FileJson } from 'lucide-vue-next'
-import { toolsData } from '../data/tools.js'
+import { toolsApi } from '../api/index.js'
 
-const tools = ref(toolsData)
+const tools = ref([])
 const isAnimated = ref(false)
 
 const iconMap = {
@@ -62,7 +62,23 @@ const getToolIcon = (name) => {
   return iconMap[name] || Wrench
 }
 
+const fetchTools = async () => {
+  try {
+    const { data } = await toolsApi.getAll({ status: 'published' })
+    tools.value = data.map(t => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      icon: t.icon,
+      link: t.url
+    }))
+  } catch (err) {
+    console.error('加载工具失败:', err)
+  }
+}
+
 onMounted(() => {
+  fetchTools()
   setTimeout(() => {
     isAnimated.value = true
   }, 100)

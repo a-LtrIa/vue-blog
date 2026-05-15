@@ -23,6 +23,12 @@
         <router-link to="/backgrounds" class="nav-item" :class="{ active: $route.path === '/backgrounds' }">
           🖼️ 背景图片
         </router-link>
+        <router-link to="/tools" class="nav-item" :class="{ active: $route.path.startsWith('/tools') }">
+          🛠️ 喵喵小工具
+        </router-link>
+        <router-link to="/resources" class="nav-item" :class="{ active: $route.path.startsWith('/resources') }">
+          📦 资源分享
+        </router-link>
       </nav>
       <div class="user-info">
         <span>{{ authStore.user?.username }}</span>

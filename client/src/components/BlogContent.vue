@@ -238,10 +238,39 @@
       </main>
     </div>
 
+    <!-- Hitokoto Section -->
+    <div class="hitokoto-section">
+      <HitokotoCard :transparent="true" />
+    </div>
+
     <!-- Footer -->
     <footer class="site-footer">
-      <p class="copyright">© 2025 {{ settings.site_name || '我的博客' }}</p>
-      <p class="credit">Made with Vue.js</p>
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <h3 class="footer-logo">{{ settings.site_name || '我的博客' }}</h3>
+          <p class="footer-desc">{{ settings.site_description || '记录技术、生活与思考' }}</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4 class="footer-col-title">导航</h4>
+            <a href="/" class="footer-link">首页</a>
+            <a href="/articles" class="footer-link">文章</a>
+            <a href="/categories" class="footer-link">分类</a>
+            <a href="/tags" class="footer-link">标签</a>
+          </div>
+          <div class="footer-col">
+            <h4 class="footer-col-title">联系</h4>
+            <a v-for="link in socialLinks.slice(0, 4)" :key="link.id" :href="link.url" target="_blank" class="footer-link">
+              <component :is="getSocialIcon(link)" :size="14" class="footer-link-icon" />
+              {{ link.platform }}
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="copyright">© {{ new Date().getFullYear() }} {{ settings.site_name || '我的博客' }}. All rights reserved.</p>
+        <p class="credit">Powered by Vue.js & Express</p>
+      </div>
     </footer>
 
     <ProfileCard
@@ -297,6 +326,7 @@ import {
   MapPin
 } from 'lucide-vue-next'
 import AnnouncementCard from './AnnouncementCard.vue'
+import HitokotoCard from './HitokotoCard.vue'
 import TagsCard from './TagsCard.vue'
 import BackgroundActions from './BackgroundActions.vue'
 import ProfileCard from './ProfileCard.vue'
@@ -306,6 +336,7 @@ import ResourcesCard from './ResourcesCard.vue'
 import { toolsData } from '../data/tools.js'
 import { resourcesData } from '../data/resources.js'
 import { parseDate } from '../utils/date.js'
+import { toolsApi, resourcesApi } from '../api/index.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -376,9 +407,39 @@ const announcements = ref([
   }
 ])
 
-const tools = ref(toolsData)
+const tools = ref([])
 
-const resources = ref(resourcesData)
+const resources = ref([])
+
+const fetchTools = async () => {
+  try {
+    const { data } = await toolsApi.getAll({ status: 'published' })
+    tools.value = data.map(t => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      icon: t.icon,
+      link: t.url
+    }))
+  } catch (err) {
+    console.error('加载工具失败:', err)
+  }
+}
+
+const fetchResources = async () => {
+  try {
+    const { data } = await resourcesApi.getAll({ status: 'published', limit: 100 })
+    resources.value = data.resources.map(r => ({
+      id: r.id,
+      name: r.title,
+      description: r.description,
+      tag: r.tag,
+      link: r.url
+    }))
+  } catch (err) {
+    console.error('加载资源失败:', err)
+  }
+}
 
 const renderedContent = computed(() => {
   if (!postContent.value.content) return ''
@@ -406,6 +467,8 @@ let runningTimer = null
 onMounted(() => {
   updateRunningTime()
   runningTimer = setInterval(updateRunningTime, 1000)
+  fetchTools()
+  fetchResources()
 })
 onUnmounted(() => {
   if (runningTimer) clearInterval(runningTimer)
@@ -1156,6 +1219,7 @@ watch(() => route.query.read, async (slug) => {
   margin: 0 0 16px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex: 1;
@@ -1207,21 +1271,99 @@ watch(() => route.query.read, async (slug) => {
 .site-footer {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 48px 24px 32px;
+  padding: 0 24px 32px;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 48px;
+  padding: 48px 0 40px;
   border-top: 1px solid var(--border-color);
-  text-align: center;
+}
+
+.footer-brand {
+  max-width: 280px;
+}
+
+.footer-logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.footer-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  gap: 64px;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-col-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-link {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: var(--text-primary);
+}
+
+.footer-link-icon {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--border-color);
 }
 
 .copyright {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
 }
 
 .credit {
   font-size: 13px;
   color: var(--text-muted);
   margin: 0;
+}
+
+.hitokoto-section {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 48px 24px 32px;
+  text-align: center;
 }
 
 /* ===== Responsive ===== */
@@ -1320,6 +1462,25 @@ watch(() => route.query.read, async (slug) => {
 
   .sidebar-card {
     padding: 20px;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .footer-links {
+    gap: 48px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .hitokoto-section {
+    padding: 32px 16px 24px;
   }
 }
 

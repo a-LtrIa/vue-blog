@@ -12,6 +12,8 @@ import settingsRoutes from './routes/settings.js'
 import uploadRoutes from './routes/upload.js'
 import backgroundRoutes, { ensureCache, startScheduler } from './routes/background.js'
 import visitsRoutes from './routes/visits.js'
+import toolsRoutes from './routes/tools.js'
+import resourcesRoutes from './routes/resources.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -43,6 +45,8 @@ app.use('/api/settings', settingsRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/background', backgroundRoutes)
 app.use('/api/visits', visitsRoutes)
+app.use('/api/tools', toolsRoutes)
+app.use('/api/resources', resourcesRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Error:', err)

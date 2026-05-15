@@ -38,12 +38,28 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ArrowLeft, ExternalLink } from 'lucide-vue-next'
-import { resourcesData } from '../data/resources.js'
+import { resourcesApi } from '../api/index.js'
 
-const resources = ref(resourcesData)
+const resources = ref([])
 const isAnimated = ref(false)
 
+const fetchResources = async () => {
+  try {
+    const { data } = await resourcesApi.getAll({ status: 'published', limit: 100 })
+    resources.value = data.resources.map(r => ({
+      id: r.id,
+      name: r.title,
+      description: r.description,
+      tag: r.tag,
+      link: r.url
+    }))
+  } catch (err) {
+    console.error('加载资源失败:', err)
+  }
+}
+
 onMounted(() => {
+  fetchResources()
   setTimeout(() => {
     isAnimated.value = true
   }, 100)

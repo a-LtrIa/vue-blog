@@ -87,6 +87,33 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(date, ip)
   );
+
+  CREATE TABLE IF NOT EXISTS tools (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    url TEXT,
+    icon TEXT,
+    category TEXT,
+    sort_order INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'published',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS resources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    description TEXT,
+    cover_image TEXT,
+    url TEXT,
+    tag TEXT,
+    status TEXT DEFAULT 'published',
+    view_count INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `)
 
 // Migration: add post_type and external_url columns for existing databases
@@ -149,6 +176,40 @@ try {
     const insertTag = db.prepare('INSERT INTO tags (name, slug) VALUES (?, ?)')
     defaultTags.forEach(tag => {
       insertTag.run(tag, tag.toLowerCase().replace(/\s+/g, '-'))
+    })
+  }
+
+  // Initialize default tools
+  const initTools = db.prepare('SELECT COUNT(*) as count FROM tools')
+  if (initTools.get().count === 0) {
+    const defaultTools = [
+      ['颜色提取器', '从图片中提取主色调和配色方案', '#', 'Palette', '设计工具', 0],
+      ['JSON 格式化', '在线 JSON 格式化与校验工具', '#', 'FileJson', '开发工具', 1],
+      ['二维码生成器', '快速生成自定义样式二维码', '#', 'QrCode', '生成工具', 2],
+      ['图片压缩工具', '无损压缩图片，减小文件体积', '#', 'Image', '设计工具', 3],
+      ['代码片段管理', '收藏和管理常用代码片段', '#', 'Code2', '开发工具', 4],
+      ['字数统计器', '统计中英文文章字数与阅读时间', '#', 'Type', '文本工具', 5]
+    ]
+    const insertTool = db.prepare('INSERT INTO tools (name, description, url, icon, category, sort_order) VALUES (?, ?, ?, ?, ?, ?)')
+    defaultTools.forEach(tool => {
+      insertTool.run(...tool)
+    })
+  }
+
+  // Initialize default resources
+  const initResources = db.prepare('SELECT COUNT(*) as count FROM resources')
+  if (initResources.get().count === 0) {
+    const defaultResources = [
+      ['Iconify', 'iconify', '海量开源图标库，支持所有主流框架', '', 'https://icon-sets.iconify.design/', '图标'],
+      ['Unsplash', 'unsplash', '高质量免费图片素材，适合博客配图', '', 'https://unsplash.com/', '图片'],
+      ['Coolors', 'coolors', '在线配色方案生成器，快速搭配色彩', '', 'https://coolors.co/', '配色'],
+      ['Figma', 'figma', '协作式 UI 设计工具，支持在线编辑', '', 'https://www.figma.com/', '设计'],
+      ['MDN Web Docs', 'mdn-web-docs', '最权威的前端开发文档与教程', '', 'https://developer.mozilla.org/', '文档'],
+      ['Can I Use', 'can-i-use', '查询浏览器兼容性，前端开发必备', '', 'https://caniuse.com/', '工具']
+    ]
+    const insertResource = db.prepare('INSERT INTO resources (title, slug, description, cover_image, url, tag) VALUES (?, ?, ?, ?, ?, ?)')
+    defaultResources.forEach(resource => {
+      insertResource.run(...resource)
     })
   }
 })()

@@ -55,3 +55,19 @@ export const backgroundApi = {
   fetch: () => api.post('/background/fetch'),
   refresh: () => api.post('/background/refresh')
 }
+
+export const toolsApi = {
+  getAll: (params) => api.get('/tools', { params }),
+  getOne: (id) => api.get(`/tools/${id}`),
+  create: (data) => api.post('/tools', data),
+  update: (id, data) => api.put(`/tools/${id}`, data),
+  delete: (id) => api.delete(`/tools/${id}`)
+}
+
+export const resourcesApi = {
+  getAll: (params) => api.get('/resources', { params }),
+  getOne: (id) => api.get(`/resources/${id}`),
+  create: (data) => api.post('/resources', data),
+  update: (id, data) => api.put(`/resources/${id}`, data),
+  delete: (id) => api.delete(`/resources/${id}`)
+}

@@ -34,4 +34,12 @@ export const visitsApi = {
   getStats: () => api.get('/visits/stats')
 }
 
+export const toolsApi = {
+  getAll: (params) => api.get('/tools', { params })
+}
+
+export const resourcesApi = {
+  getAll: (params) => api.get('/resources', { params })
+}
+
 export default api

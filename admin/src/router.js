@@ -52,6 +52,36 @@ const routes = [
         path: 'backgrounds',
         name: 'Backgrounds',
         component: () => import('./views/Backgrounds.vue')
+      },
+      {
+        path: 'tools',
+        name: 'Tools',
+        component: () => import('./views/Tools.vue')
+      },
+      {
+        path: 'tools/new',
+        name: 'ToolNew',
+        component: () => import('./views/ToolEdit.vue')
+      },
+      {
+        path: 'tools/:id/edit',
+        name: 'ToolEdit',
+        component: () => import('./views/ToolEdit.vue')
+      },
+      {
+        path: 'resources',
+        name: 'Resources',
+        component: () => import('./views/Resources.vue')
+      },
+      {
+        path: 'resources/new',
+        name: 'ResourceNew',
+        component: () => import('./views/ResourceEdit.vue')
+      },
+      {
+        path: 'resources/:id/edit',
+        name: 'ResourceEdit',
+        component: () => import('./views/ResourceEdit.vue')
       }
     ]
   }
@@ -64,7 +94,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  
+
   if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
     next('/login')
   } else if (to.path === '/login' && authStore.isAuthenticated) {
