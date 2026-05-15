@@ -192,6 +192,7 @@ const loadMusicList = async () => {
     const res = await musicApi.getAll({ status: 'published' })
     if (res.data && res.data.length > 0) {
       musicList.value = res.data
+      currentIndex.value = Math.floor(Math.random() * res.data.length)
       showMusicPlayer.value = true
       initAudio()
     }
@@ -978,7 +979,7 @@ onUnmounted(() => {
 }
 
 .music-artist {
-  font-size: 12px;
+  font-size: 10px;
   color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
   overflow: hidden;

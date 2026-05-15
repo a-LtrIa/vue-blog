@@ -25,9 +25,16 @@
 
         <div class="form-group">
           <label>音频文件</label>
-          <div class="audio-upload" @click="audioInputRef?.click()">
+          <div
+            class="audio-upload"
+            :class="{ 'drag-over': isAudioDragOver }"
+            @click="audioInputRef?.click()"
+            @dragover.prevent="isAudioDragOver = true"
+            @dragleave.prevent="isAudioDragOver = false"
+            @drop.prevent="handleAudioDrop"
+          >
             <input ref="audioInputRef" type="file" accept="audio/*" @change="handleAudioUpload" />
-            <p v-if="!form.audio_url">{{ isUploading ? '正在解析元数据...' : '点击上传音频文件（支持 MP3、WAV、OGG 等）' }}</p>
+            <p v-if="!form.audio_url">{{ isUploading ? '正在解析元数据...' : '点击或拖拽上传音频文件（支持 MP3、WAV、OGG 等）' }}</p>
             <div v-else class="audio-info">
               <span>✓ 已选择: {{ audioFileName }}</span>
               <button type="button" class="btn btn-sm btn-danger" @click.stop="removeAudio">移除</button>
@@ -38,9 +45,16 @@
 
         <div class="form-group">
           <label>封面图片</label>
-          <div class="image-upload" @click="$refs.coverInput.click()">
+          <div
+            class="image-upload"
+            :class="{ 'drag-over': isCoverDragOver }"
+            @click="coverInput?.click()"
+            @dragover.prevent="isCoverDragOver = true"
+            @dragleave.prevent="isCoverDragOver = false"
+            @drop.prevent="handleCoverDrop"
+          >
             <input ref="coverInput" type="file" accept="image/*" @change="handleCoverUpload" />
-            <p v-if="!form.cover_url">点击上传封面图片（选填）</p>
+            <p v-if="!form.cover_url">点击或拖拽上传封面图片（选填）</p>
             <img v-else :src="form.cover_url" class="image-preview" />
           </div>
         </div>
@@ -97,6 +111,22 @@ const form = ref({
 
 const loading = ref(false)
 const isUploading = ref(false)
+const isAudioDragOver = ref(false)
+const isCoverDragOver = ref(false)
+
+const handleAudioDrop = (e) => {
+  isAudioDragOver.value = false
+  const file = e.dataTransfer.files[0]
+  if (!file) return
+  if (!file.type.startsWith('audio/')) {
+    alert('请上传音频文件')
+    return
+  }
+  const dt = new DataTransfer()
+  dt.items.add(file)
+  audioInputRef.value.files = dt.files
+  handleAudioUpload({ target: { files: [file] } })
+}
 
 const handleAudioUpload = async (e) => {
   const file = e.target.files[0]
@@ -162,6 +192,21 @@ const removeAudio = () => {
 }
 
 const audioInputRef = ref(null)
+const coverInput = ref(null)
+
+const handleCoverDrop = (e) => {
+  isCoverDragOver.value = false
+  const file = e.dataTransfer.files[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    alert('请上传图片文件')
+    return
+  }
+  const dt = new DataTransfer()
+  dt.items.add(file)
+  coverInput.value.files = dt.files
+  handleCoverUpload({ target: { files: [file] } })
+}
 
 const handleCoverUpload = async (e) => {
   const file = e.target.files[0]
@@ -232,7 +277,12 @@ onMounted(async () => {
 }
 
 .audio-upload:hover {
+  border-color: #ffffff;
+}
+
+.audio-upload.drag-over {
   border-color: #7877c6;
+  background: rgba(120, 119, 198, 0.1);
 }
 
 .audio-upload input {
@@ -260,6 +310,28 @@ onMounted(async () => {
 
 .audio-info span {
   color: #333;
+}
+
+.image-upload {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.image-upload:hover {
+  border-color: #7877c6;
+}
+
+.image-upload.drag-over {
+  border-color: #7877c6;
+  background: rgba(120, 119, 198, 0.1);
+}
+
+.image-upload input {
+  display: none;
 }
 
 .image-preview {
