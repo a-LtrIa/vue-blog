@@ -79,3 +79,11 @@ export const announcementsApi = {
   update: (id, data) => api.put(`/announcements/${id}`, data),
   delete: (id) => api.delete(`/announcements/${id}`)
 }
+
+export const friendLinksApi = {
+  getAll: (params) => api.get('/friend-links', { params }),
+  getOne: (id) => api.get(`/friend-links/${id}`),
+  create: (data) => api.post('/friend-links', data),
+  update: (id, data) => api.put(`/friend-links/${id}`, data),
+  delete: (id) => api.delete(`/friend-links/${id}`)
+}

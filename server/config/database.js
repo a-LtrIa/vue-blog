@@ -124,6 +124,18 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS friend_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    icon TEXT,
+    description TEXT,
+    sort_order INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'published',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `)
 
 // Migration: add post_type and external_url columns for existing databases
@@ -226,6 +238,25 @@ try {
     const insertAnnouncement = db.prepare('INSERT INTO announcements (title, content, sort_order) VALUES (?, ?, ?)')
     defaultAnnouncements.forEach(announcement => {
       insertAnnouncement.run(...announcement)
+    })
+  }
+
+  // Initialize default friend links
+  const initFriendLinks = db.prepare('SELECT COUNT(*) as count FROM friend_links')
+  if (initFriendLinks.get().count === 0) {
+    const defaultFriendLinks = [
+      ['Vue.js', 'https://vuejs.org/', 'https://vuejs.org/logo.svg', '渐进式 JavaScript 框架', 0],
+      ['Vite', 'https://vitejs.dev/', 'https://vitejs.dev/logo.svg', '下一代前端构建工具', 1],
+      ['React', 'https://react.dev/', 'https://react.dev/favicon-32x32.png', '用于构建用户界面的 JavaScript 库', 2],
+      ['GitHub', 'https://github.com/', 'https://github.githubassets.com/favicons/favicon-dark.svg', '全球最大的代码托管平台', 3],
+      ['MDN', 'https://developer.mozilla.org/', 'https://developer.mozilla.org/favicon-48x48.cbbd161b.png', '权威的 Web 开发文档', 4],
+      ['Tailwind CSS', 'https://tailwindcss.com/', 'https://tailwindcss.com/favicons/favicon-32x32.png', '实用优先的 CSS 框架', 5],
+      ['Node.js', 'https://nodejs.org/', 'https://nodejs.org/static/images/favicons/favicon.png', 'JavaScript 运行时环境', 6],
+      ['TypeScript', 'https://www.typescriptlang.org/', 'https://www.typescriptlang.org/favicon-32x32.png', 'JavaScript 的超集', 7]
+    ]
+    const insertFriendLink = db.prepare('INSERT INTO friend_links (name, url, icon, description, sort_order) VALUES (?, ?, ?, ?, ?)')
+    defaultFriendLinks.forEach(link => {
+      insertFriendLink.run(...link)
     })
   }
 

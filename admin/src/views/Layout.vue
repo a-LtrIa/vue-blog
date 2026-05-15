@@ -32,6 +32,9 @@
         <router-link to="/announcements" class="nav-item" :class="{ active: $route.path.startsWith('/announcements') }">
           📢 网站公告
         </router-link>
+        <router-link to="/friend-links" class="nav-item" :class="{ active: $route.path.startsWith('/friend-links') }">
+          🔗 友情链接
+        </router-link>
       </nav>
       <div class="user-info">
         <span>{{ authStore.user?.username }}</span>

@@ -46,4 +46,8 @@ export const announcementsApi = {
   getAll: (params) => api.get('/announcements', { params })
 }
 
+export const friendLinksApi = {
+  getAll: (params) => api.get('/friend-links', { params })
+}
+
 export default api

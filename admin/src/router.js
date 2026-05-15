@@ -97,6 +97,21 @@ const routes = [
         path: 'announcements/:id/edit',
         name: 'AnnouncementEdit',
         component: () => import('./views/AnnouncementEdit.vue')
+      },
+      {
+        path: 'friend-links',
+        name: 'FriendLinks',
+        component: () => import('./views/FriendLinks.vue')
+      },
+      {
+        path: 'friend-links/new',
+        name: 'FriendLinkNew',
+        component: () => import('./views/FriendLinkEdit.vue')
+      },
+      {
+        path: 'friend-links/:id/edit',
+        name: 'FriendLinkEdit',
+        component: () => import('./views/FriendLinkEdit.vue')
       }
     ]
   }

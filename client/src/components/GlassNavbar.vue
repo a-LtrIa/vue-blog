@@ -213,7 +213,7 @@
                 <a
                   v-for="friend in friendsList"
                   :key="friend.id"
-                  :href="friend.link"
+                  :href="friend.url"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="friend-item"
@@ -241,6 +241,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Home, FileText, Search, FolderOpen, ChevronDown, Wrench, Share2, Link, X } from 'lucide-vue-next'
 import { parseDate } from '../utils/date.js'
+import { friendLinksApi } from '../api/index.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -273,16 +274,16 @@ const selectedIndex = ref(0)
 
 const logoText = computed(() => props.siteName.charAt(0).toUpperCase())
 
-const friendsList = [
-  { id: 1, name: 'Vue.js', icon: 'https://vuejs.org/logo.svg', link: 'https://vuejs.org/' },
-  { id: 2, name: 'Vite', icon: 'https://vitejs.dev/logo.svg', link: 'https://vitejs.dev/' },
-  { id: 3, name: 'React', icon: 'https://react.dev/favicon-32x32.png', link: 'https://react.dev/' },
-  { id: 4, name: 'GitHub', icon: 'https://github.githubassets.com/favicons/favicon-dark.svg', link: 'https://github.com/' },
-  { id: 5, name: 'MDN', icon: 'https://developer.mozilla.org/favicon-48x48.cbbd161b.png', link: 'https://developer.mozilla.org/' },
-  { id: 6, name: 'Tailwind CSS', icon: 'https://tailwindcss.com/favicons/favicon-32x32.png', link: 'https://tailwindcss.com/' },
-  { id: 7, name: 'Node.js', icon: 'https://nodejs.org/static/images/favicons/favicon.png', link: 'https://nodejs.org/' },
-  { id: 8, name: 'TypeScript', icon: 'https://www.typescriptlang.org/favicon-32x32.png', link: 'https://www.typescriptlang.org/' }
-]
+const friendsList = ref([])
+
+const fetchFriendLinks = async () => {
+  try {
+    const { data } = await friendLinksApi.getAll({ status: 'published' })
+    friendsList.value = data
+  } catch (err) {
+    console.error('加载友情链接失败:', err)
+  }
+}
 
 const isFileActive = () => {
   return ['/articles', '/tools', '/resources'].some(p => route.path.startsWith(p))
@@ -391,6 +392,7 @@ const handleClickOutside = (e) => {
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
   document.addEventListener('click', handleClickOutside)
+  fetchFriendLinks()
 })
 
 onUnmounted(() => {
