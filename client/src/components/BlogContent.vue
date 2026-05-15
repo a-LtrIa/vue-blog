@@ -39,6 +39,28 @@
               </div>
             </div>
           </div>
+          <!-- Announcement Card -->
+          <AnnouncementCard :announcements="announcements" />
+          <!-- Hot Tags Card -->
+          <TagsCard :tags="tags" />
+          <!-- Visits Chart Card -->
+          <VisitsChart />
+          <!-- Social Links Card -->
+          <div class="sidebar-card social-section" v-if="socialLinks.length">
+            <h3 class="card-title">
+              <Link2 class="title-icon" :size="16" />
+              关注我
+            </h3>
+            <div class="social-grid">
+              <a v-for="link in socialLinks.slice(0, 6)" :key="link.id" :href="link.url" target="_blank" class="social-item">
+                <component :is="getSocialIcon(link)" :size="22" class="social-icon" />
+                <span class="social-name">{{ link.platform }}</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Background Actions Card -->
+          <BackgroundActions :bg-image="bgImage" />
 
           <!-- Site Info Card -->
           <div class="sidebar-card site-info">
@@ -61,30 +83,6 @@
               </div>
             </div>
           </div>
-          <!-- Visits Chart Card -->
-          <VisitsChart />
-          <!-- Social Links Card -->
-          <div class="sidebar-card social-section" v-if="socialLinks.length">
-            <h3 class="card-title">
-              <Link2 class="title-icon" :size="16" />
-              关注我
-            </h3>
-            <div class="social-grid">
-              <a v-for="link in socialLinks.slice(0, 6)" :key="link.id" :href="link.url" target="_blank" class="social-item">
-                <component :is="getSocialIcon(link.platform)" :size="22" class="social-icon" />
-                <span class="social-name">{{ link.platform }}</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Announcement Card -->
-          <AnnouncementCard :announcements="announcements" />
-
-          <!-- Hot Tags Card -->
-          <TagsCard :tags="tags" />
-
-          <!-- Background Actions Card -->
-          <BackgroundActions :bg-image="bgImage" />
 
 
         </div>
@@ -178,6 +176,7 @@
               <div class="post-image" v-if="posts[0].cover_image">
                 <img :src="posts[0].cover_image" :alt="posts[0].title" />
                 <span class="post-badge">精选</span>
+                <span class="post-badge external-badge" v-if="posts[0].post_type === 'external'">外链</span>
               </div>
               <div class="post-content">
                 <div class="post-meta">
@@ -202,6 +201,7 @@
             <article class="post-card" v-for="post in posts.slice(1, 6)" :key="post.id" @click="viewPost(post, '/')">
               <div class="post-image" v-if="post.cover_image">
                 <img :src="post.cover_image" :alt="post.title" />
+                <span class="post-badge external-badge" v-if="post.post_type === 'external'">外链</span>
               </div>
               <div class="post-content">
                 <div class="post-meta">
@@ -280,7 +280,21 @@ import {
   Rss,
   MessageSquare,
   ArrowLeft,
-  Eye
+  Eye,
+  Mail,
+  Twitter,
+  Video,
+  Camera,
+  Music,
+  Linkedin,
+  BookOpen,
+  Heart,
+  Coffee,
+  ExternalLink,
+  Share2,
+  Send,
+  Phone,
+  MapPin
 } from 'lucide-vue-next'
 import AnnouncementCard from './AnnouncementCard.vue'
 import TagsCard from './TagsCard.vue'
@@ -291,6 +305,7 @@ import ToolsCard from './ToolsCard.vue'
 import ResourcesCard from './ResourcesCard.vue'
 import { toolsData } from '../data/tools.js'
 import { resourcesData } from '../data/resources.js'
+import { parseDate } from '../utils/date.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -399,7 +414,7 @@ onUnmounted(() => {
 const lastUpdate = computed(() => {
   if (props.posts.length === 0) return '-'
   const latest = props.posts[0]
-  const date = new Date(latest.updated_at || latest.created_at)
+  const date = parseDate(latest.updated_at || latest.created_at)
   return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 })
 
@@ -458,16 +473,53 @@ const socialIconMap = {
   '社媒': Globe,
   '社交媒体': Globe,
   'Social': Globe,
-  'social': Globe
+  'social': Globe,
+  '邮箱': Mail,
+  'Email': Mail,
+  'email': Mail,
+  'Twitter': Twitter,
+  'twitter': Twitter,
+  'X': Twitter,
+  'YouTube': Video,
+  'youtube': Video,
+  '视频': Video,
+  'Instagram': Camera,
+  'instagram': Camera,
+  '摄影': Camera,
+  '音乐': Music,
+  'Music': Music,
+  '网易云': Music,
+  'LinkedIn': Linkedin,
+  'linkedin': Linkedin,
+  '博客': BookOpen,
+  'Blog': BookOpen,
+  'blog': BookOpen,
+  '赞助': Heart,
+  'Sponsor': Heart,
+  'Telegram': Send,
+  'telegram': Send,
+  '电话': Phone,
+  'Phone': Phone,
+  '地址': MapPin,
+  'Address': MapPin,
 }
 
-const getSocialIcon = (platform) => {
-  return socialIconMap[platform] || Globe
+const iconComponentMap = {
+  Globe, Github, MessageCircle, MessageSquare, Rss, Mail,
+  Twitter, Video, Camera, Music, Linkedin, BookOpen,
+  Heart, Coffee, ExternalLink, Link2, Share2, Send, Phone, MapPin
+}
+
+const getSocialIcon = (link) => {
+  if (link.icon && iconComponentMap[link.icon]) {
+    return iconComponentMap[link.icon]
+  }
+  return socialIconMap[link.platform] || Globe
 }
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
+  const date = parseDate(dateStr)
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
@@ -476,6 +528,10 @@ const handleAvatarError = (e) => {
 }
 
 const viewPost = async (post, fromPath = '/articles') => {
+  if (post.post_type === 'external' && post.external_url) {
+    window.open(post.external_url, '_blank')
+    return
+  }
   backTarget.value = fromPath
   selectedPost.value = post
   isLoadingPost.value = true
@@ -1045,6 +1101,13 @@ watch(() => route.query.read, async (slug) => {
   font-size: 11px;
   font-weight: 600;
   border-radius: 100px;
+}
+
+.post-badge.external-badge {
+  left: auto;
+  right: 12px;
+  background: rgba(59, 130, 246, 0.9);
+  color: #ffffff;
 }
 
 .post-content {

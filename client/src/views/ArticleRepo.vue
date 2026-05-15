@@ -46,7 +46,10 @@
               <div class="single-post-meta">
                 <time class="single-post-date">{{ formatFullDate(post.created_at) }}</time>
               </div>
-              <h3 class="single-post-title">{{ post.title }}</h3>
+              <h3 class="single-post-title">
+                {{ post.title }}
+                <ExternalLink v-if="post.post_type === 'external'" :size="14" class="external-icon" />
+              </h3>
               <p class="single-post-excerpt">
                 {{ post.excerpt || post.content?.substring(0, 150) + '...' }}
               </p>
@@ -95,6 +98,7 @@
                   <div class="post-item-main">
                     <FileText :size="16" class="post-item-icon" />
                     <span class="post-item-title">{{ post.title }}</span>
+                    <ExternalLink v-if="post.post_type === 'external'" :size="12" class="external-icon-sm" />
                   </div>
                   <span class="post-item-date">{{ formatDate(post.created_at) }}</span>
                 </div>
@@ -137,7 +141,10 @@
                       </span>
                       <time class="timeline-card-date">{{ formatDate(post.created_at) }}</time>
                     </div>
-                    <h4 class="timeline-card-title">{{ post.title }}</h4>
+                    <h4 class="timeline-card-title">
+                      {{ post.title }}
+                      <ExternalLink v-if="post.post_type === 'external'" :size="14" class="external-icon" />
+                    </h4>
                     <p class="timeline-card-excerpt">
                       {{ post.excerpt || post.content?.substring(0, 120) + '...' }}
                     </p>
@@ -167,9 +174,11 @@ import {
   Clock,
   Folder,
   ChevronRight,
-  FileText
+  FileText,
+  ExternalLink
 } from 'lucide-vue-next'
 import { postsApi, categoriesApi } from '../api/index.js'
+import { parseDate } from '../utils/date.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -202,11 +211,11 @@ const categoriesWithPosts = computed(() => {
 const timelineGroups = computed(() => {
   const groups = {}
   const posts = [...filteredPosts.value].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    (a, b) => parseDate(b.created_at) - parseDate(a.created_at)
   )
 
   posts.forEach(post => {
-    const date = new Date(post.created_at)
+    const date = parseDate(post.created_at)
     const label = `${date.getFullYear()}年${date.getMonth() + 1}月`
     if (!groups[label]) {
       groups[label] = []
@@ -222,6 +231,10 @@ const toggleFolder = (id) => {
 }
 
 const viewPost = (post) => {
+  if (post.post_type === 'external' && post.external_url) {
+    window.open(post.external_url, '_blank')
+    return
+  }
   const currentQuery = { ...route.query }
   delete currentQuery.read
   const fromPath = '/articles' + (Object.keys(currentQuery).length ? '?' + new URLSearchParams(currentQuery).toString() : '')
@@ -251,7 +264,7 @@ const enterFolder = (cat) => {
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
+  const date = parseDate(dateStr)
   return date.toLocaleDateString('zh-CN', {
     month: 'short',
     day: 'numeric'
@@ -260,7 +273,7 @@ const formatDate = (dateStr) => {
 
 const formatFullDate = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
+  const date = parseDate(dateStr)
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
@@ -888,5 +901,21 @@ watch([viewMode, singleCategoryView], () => {
   .timeline-marker {
     left: -24px;
   }
+}
+
+.external-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.external-icon-sm {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 4px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
 }
 </style>

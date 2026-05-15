@@ -240,6 +240,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Home, FileText, Search, FolderOpen, ChevronDown, Wrench, Share2, Link, X } from 'lucide-vue-next'
+import { parseDate } from '../utils/date.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -342,7 +343,7 @@ const closeSearch = () => {
 
 const formatSearchDate = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
+  const date = parseDate(dateStr)
   return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 }
 

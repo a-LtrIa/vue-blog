@@ -85,6 +85,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Megaphone, X, ArrowLeft } from 'lucide-vue-next'
+import { parseDate } from '../utils/date.js'
 
 const props = defineProps({
   announcements: {
@@ -107,13 +108,13 @@ const allAnnouncements = computed(() => {
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
-  const date = new Date(dateString)
+  const date = parseDate(dateString)
   return `${date.getMonth() + 1}/${date.getDate()}`
 }
 
 const formatFullDate = (dateString) => {
   if (!dateString) return ''
-  const date = new Date(dateString)
+  const date = parseDate(dateString)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 

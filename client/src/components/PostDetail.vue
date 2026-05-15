@@ -64,6 +64,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { parseDate } from '../utils/date.js'
 
 const props = defineProps({
   post: {
@@ -83,11 +84,11 @@ const authorAvatar = defaultAvatar
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const date = parseDate(dateStr)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   })
 }
 
@@ -114,7 +115,7 @@ const renderedContent = computed(() => {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
     .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-  
+
   return `<p>${content}</p>`
 })
 
@@ -417,32 +418,32 @@ const handleAvatarError = (e) => {
   .post-detail-overlay {
     padding: 0;
   }
-  
+
   .post-detail-container {
     max-height: 100vh;
     border-radius: 0;
   }
-  
+
   .close-btn {
     top: 16px;
     right: 16px;
     width: 40px;
     height: 40px;
   }
-  
+
   .post-article {
     padding: 80px 24px 32px;
   }
-  
+
   .post-cover {
     margin: 0 -24px 24px -24px;
   }
-  
+
   .post-stats {
     flex-wrap: wrap;
     gap: 12px;
   }
-  
+
   .post-content {
     font-size: 16px;
   }

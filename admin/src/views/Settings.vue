@@ -3,7 +3,7 @@
     <div class="page-header">
       <h1>系统设置</h1>
     </div>
-    
+
     <div class="card">
       <div class="card-header">
         <h3>基本信息</h3>
@@ -19,7 +19,7 @@
             <input v-model="settings.site_description" type="text" />
           </div>
         </div>
-        
+
         <div class="form-row">
           <div class="form-group">
             <label>作者名称</label>
@@ -30,12 +30,12 @@
             <input v-model="settings.author_bio" type="text" />
           </div>
         </div>
-        
+
         <div class="form-group">
           <label>背景图 URL</label>
           <input v-model="settings.background_url" type="text" placeholder="留空则使用随机背景" />
         </div>
-        
+
         <div class="form-group">
           <label>头像</label>
           <div class="image-upload" @click="$refs.avatarInput.click()">
@@ -44,13 +44,13 @@
             <img v-else :src="settings.avatar_url" class="image-preview" />
           </div>
         </div>
-        
+
         <button type="submit" class="btn btn-primary" :disabled="saving">
           {{ saving ? '保存中...' : '保存设置' }}
         </button>
       </form>
     </div>
-    
+
     <div class="card">
       <div class="card-header">
         <h3>社交链接</h3>
@@ -69,7 +69,10 @@
           <tr v-for="link in socialLinks" :key="link.id">
             <td><input v-model="link.platform" type="text" class="inline-input" /></td>
             <td><input v-model="link.url" type="text" class="inline-input" /></td>
-            <td><input v-model="link.icon" type="text" class="inline-input" /></td>
+            <td><select v-model="link.icon" class="inline-input">
+              <option value="">-- 选择图标 --</option>
+              <option v-for="ic in SOCIAL_ICONS" :key="ic.name" :value="ic.name">{{ ic.label }} ({{ ic.name }})</option>
+            </select></td>
             <td class="actions">
               <button @click="saveSocialLink(link)" class="btn btn-success btn-sm">保存</button>
               <button @click="deleteSocialLink(link.id)" class="btn btn-danger btn-sm">删除</button>
@@ -78,7 +81,7 @@
         </tbody>
       </table>
     </div>
-    
+
     <div class="card">
       <div class="card-header">
         <h3>修改密码</h3>
@@ -105,6 +108,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { settingsApi, uploadApi, authApi } from '../api/modules.js'
+import { SOCIAL_ICONS } from '../config/icons.js'
 
 const settings = ref({
   site_name: '',
@@ -149,7 +153,7 @@ const saveSettings = async () => {
 const handleAvatarUpload = async (e) => {
   const file = e.target.files[0]
   if (!file) return
-  
+
   try {
     const { data } = await uploadApi.uploadImage(file)
     settings.value.avatar_url = data.url
@@ -194,9 +198,9 @@ const deleteSocialLink = async (id) => {
     socialLinks.value = socialLinks.value.filter(l => l.id !== id)
     return
   }
-  
+
   if (!confirm('确定要删除这个链接吗？')) return
-  
+
   try {
     await settingsApi.deleteSocialLink(id)
     socialLinks.value = socialLinks.value.filter(l => l.id !== id)

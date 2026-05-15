@@ -62,6 +62,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { postsApi, categoriesApi } from '../api/modules.js'
+import { parseDate } from '../utils/date.js'
 
 const stats = ref({
   posts: 0,
@@ -73,7 +74,7 @@ const stats = ref({
 const recentPosts = ref([])
 
 const formatDate = (dateStr) => {
-  return new Date(dateStr).toLocaleDateString('zh-CN')
+  return parseDate(dateStr).toLocaleDateString('zh-CN')
 }
 
 onMounted(async () => {

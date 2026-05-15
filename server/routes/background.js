@@ -5,15 +5,27 @@ import { existsSync, mkdirSync, readdirSync, unlinkSync, createWriteStream, read
 import https from 'https'
 import http from 'http'
 import crypto from 'crypto'
+import { getChinaDateString } from '../utils/date.js'
+import db from '../config/database.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const router = express.Router()
+
 const CACHE_DIR = join(__dirname, '..', 'cache', 'backgrounds')
 const META_FILE = join(CACHE_DIR, 'meta.json')
 const IMAGE_COUNT = 10
 const LOLIAPI_URL = 'https://www.loliapi.com/acg/'
+
+const TRAFFIC_CONFIG = [
+  { level: 'high', minAvgVisits: 50, intervalMinutes: 120 },
+  { level: 'medium', minAvgVisits: 10, intervalMinutes: 360 },
+  { level: 'low', minAvgVisits: 1, intervalMinutes: 720 },
+  { level: 'none', minAvgVisits: 0, intervalMinutes: 0 }
+]
+
+const CHECK_INTERVAL_MS = 10 * 60 * 1000
 
 const ensureCacheDir = () => {
   if (!existsSync(CACHE_DIR)) {
@@ -22,15 +34,51 @@ const ensureCacheDir = () => {
 }
 
 const getToday = () => {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return getChinaDateString()
+}
+
+const getTrafficLevel = () => {
+  try {
+    const rows = db.prepare(`
+      SELECT date, count FROM visits
+      WHERE date >= date('now', '-7 days')
+      ORDER BY date DESC
+    `).all()
+
+    if (rows.length === 0) return 'none'
+
+    const totalVisits = rows.reduce((sum, r) => sum + r.count, 0)
+    const avgVisits = totalVisits / 7
+
+    for (const config of TRAFFIC_CONFIG) {
+      if (avgVisits >= config.minAvgVisits) {
+        return config.level
+      }
+    }
+    return 'none'
+  } catch {
+    return 'none'
+  }
+}
+
+const getRefreshInterval = () => {
+  const level = getTrafficLevel()
+  const config = TRAFFIC_CONFIG.find(c => c.level === level)
+  return config ? config.intervalMinutes * 60 * 1000 : 0
 }
 
 const isCacheStale = () => {
   if (!existsSync(META_FILE)) return true
   try {
     const meta = JSON.parse(readFileSync(META_FILE, 'utf-8'))
-    return meta.date !== getToday() || meta.count < IMAGE_COUNT
+    if (meta.count < IMAGE_COUNT) return true
+
+    const interval = getRefreshInterval()
+    if (interval === 0) return false
+
+    const lastRefresh = meta.lastRefresh || meta.date
+    const elapsed = Date.now() - new Date(lastRefresh).getTime()
+    return elapsed > interval
   } catch {
     return true
   }
@@ -114,6 +162,7 @@ const fetchAndCacheImages = async () => {
 
   const meta = {
     date: getToday(),
+    lastRefresh: new Date().toISOString(),
     count: filenames.length,
     files: filenames
   }
@@ -239,10 +288,11 @@ router.post('/fetch', async (req, res) => {
 
     let meta = getCachedMeta()
     if (!meta) {
-      meta = { date: getToday(), count: 0, files: [] }
+      meta = { date: getToday(), lastRefresh: new Date().toISOString(), count: 0, files: [] }
     }
     meta.files.push(filename)
     meta.count = meta.files.length
+    meta.lastRefresh = new Date().toISOString()
     if (meta.date !== getToday()) {
       meta.date = getToday()
     }
@@ -278,5 +328,41 @@ router.post('/refresh', async (req, res) => {
   }
 })
 
-export { ensureCache }
+let schedulerTimer = null
+
+const startScheduler = () => {
+  if (schedulerTimer) clearInterval(schedulerTimer)
+
+  const runCheck = async () => {
+    const level = getTrafficLevel()
+    if (level === 'none') {
+      console.log(`[bg-scheduler] 无访问流量，跳过自动刷新`)
+      return
+    }
+
+    if (isCacheStale()) {
+      console.log(`[bg-scheduler] 流量等级: ${level}，缓存已过期，开始刷新...`)
+      try {
+        await fetchAndCacheImages()
+        console.log(`[bg-scheduler] 刷新完成`)
+      } catch (err) {
+        console.error(`[bg-scheduler] 刷新失败:`, err.message)
+      }
+    } else {
+      console.log(`[bg-scheduler] 流量等级: ${level}，缓存未过期，跳过`)
+    }
+  }
+
+  schedulerTimer = setInterval(runCheck, CHECK_INTERVAL_MS)
+  console.log(`[bg-scheduler] 调度器已启动，每 ${CHECK_INTERVAL_MS / 60000} 分钟检查一次`)
+}
+
+const stopScheduler = () => {
+  if (schedulerTimer) {
+    clearInterval(schedulerTimer)
+    schedulerTimer = null
+  }
+}
+
+export { ensureCache, startScheduler, stopScheduler }
 export default router

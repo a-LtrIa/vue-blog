@@ -10,7 +10,7 @@ import categoriesRoutes from './routes/categories.js'
 import tagsRoutes from './routes/tags.js'
 import settingsRoutes from './routes/settings.js'
 import uploadRoutes from './routes/upload.js'
-import backgroundRoutes, { ensureCache } from './routes/background.js'
+import backgroundRoutes, { ensureCache, startScheduler } from './routes/background.js'
 import visitsRoutes from './routes/visits.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -54,7 +54,9 @@ app.listen(PORT, () => {
   console.log(`📚 API available at http://localhost:${PORT}/api`)
   ensureCache().then(() => {
     console.log(`🖼️ Background images cached`)
+    startScheduler()
   }).catch(err => {
     console.error('Failed to cache background images:', err.message)
+    startScheduler()
   })
 })

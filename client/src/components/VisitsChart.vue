@@ -98,6 +98,7 @@
 </template>
 
 <script setup>
+import { parseDate } from '../utils/date.js'
 import { ref, computed, onMounted } from 'vue'
 import { TrendingUp } from 'lucide-vue-next'
 import { visitsApi } from '../api/index.js'
@@ -166,7 +167,7 @@ const areaPoints = computed(() => {
 })
 
 const formatLabel = (dateStr) => {
-  const d = new Date(dateStr)
+  const d = parseDate(dateStr)
   return `${d.getMonth() + 1}/${d.getDate()}`
 }
 

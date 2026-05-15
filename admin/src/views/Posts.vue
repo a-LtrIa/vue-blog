@@ -4,12 +4,13 @@
       <h1>文章管理</h1>
       <router-link to="/posts/new" class="btn btn-primary">写文章</router-link>
     </div>
-    
+
     <div class="card">
       <table class="table">
         <thead>
           <tr>
             <th>标题</th>
+            <th>类型</th>
             <th>分类</th>
             <th>标签</th>
             <th>状态</th>
@@ -21,6 +22,11 @@
         <tbody>
           <tr v-for="post in posts" :key="post.id">
             <td>{{ post.title }}</td>
+            <td>
+              <span :class="['badge', post.post_type === 'external' ? 'badge-info' : 'badge-success']">
+                {{ post.post_type === 'external' ? '外链' : '站内' }}
+              </span>
+            </td>
             <td>{{ post.category_name || '未分类' }}</td>
             <td>
               <span v-for="tag in post.tags" :key="tag.id" class="badge badge-info" style="margin-right: 4px;">
@@ -40,7 +46,7 @@
             </td>
           </tr>
           <tr v-if="posts.length === 0">
-            <td colspan="7" style="text-align: center; color: #999;">暂无文章</td>
+            <td colspan="8" style="text-align: center; color: #999;">暂无文章</td>
           </tr>
         </tbody>
       </table>
@@ -51,11 +57,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { postsApi } from '../api/modules.js'
+import { parseDate } from '../utils/date.js'
 
 const posts = ref([])
 
 const formatDate = (dateStr) => {
-  return new Date(dateStr).toLocaleDateString('zh-CN')
+  return parseDate(dateStr).toLocaleDateString('zh-CN')
 }
 
 const loadPosts = async () => {
@@ -69,7 +76,7 @@ const loadPosts = async () => {
 
 const handleDelete = async (id) => {
   if (!confirm('确定要删除这篇文章吗？')) return
-  
+
   try {
     await postsApi.delete(id)
     posts.value = posts.value.filter(p => p.id !== id)

@@ -26,6 +26,8 @@ db.exec(`
     excerpt TEXT,
     cover_image TEXT,
     category_id INTEGER,
+    post_type TEXT DEFAULT 'local',
+    external_url TEXT,
     status TEXT DEFAULT 'draft',
     view_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -77,7 +79,23 @@ db.exec(`
     date TEXT UNIQUE NOT NULL,
     count INTEGER DEFAULT 0
   );
+
+  CREATE TABLE IF NOT EXISTS visit_ips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    ip TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(date, ip)
+  );
 `)
+
+// Migration: add post_type and external_url columns for existing databases
+try {
+  db.exec('ALTER TABLE posts ADD COLUMN post_type TEXT DEFAULT \'local\'')
+} catch (e) { /* column already exists */ }
+try {
+  db.exec('ALTER TABLE posts ADD COLUMN external_url TEXT')
+} catch (e) { /* column already exists */ }
 
 // Initialize default data in async IIFE
 ;(async () => {
