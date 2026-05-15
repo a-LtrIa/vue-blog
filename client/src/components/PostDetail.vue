@@ -79,7 +79,7 @@ const defaultAvatar = '/src/assets/avatar.jpg'
 
 // Mock data for author - in real app, this would come from settings
 const authorName = 'ALT'
-const authorBio = '前端工程师 | 热爱开源与设计'
+const authorBio = '前端开发 | 热爱vibecode'
 const authorAvatar = defaultAvatar
 
 const formatDate = (dateStr) => {

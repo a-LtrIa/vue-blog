@@ -1,13 +1,14 @@
 <template>
-  <svg style="display: none">
-    <defs>
-      <filter id="liquid_glass_filter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-        <feDisplacementMap scale="200" />
-      </filter>
-    </defs>
-  </svg>
+  <div class="glass-navbar-wrapper">
+    <svg style="display: none">
+      <defs>
+        <filter id="liquid_glass_filter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+          <feDisplacementMap scale="200" />
+        </filter>
+      </defs>
+    </svg>
 
-  <nav class="glass-navbar" :class="{ 'nav-collapsed': isCollapsed, 'nav-scrolled': isScrolled, 'nav-hidden': isHidden }">
+    <nav class="glass-navbar" :class="{ 'nav-collapsed': isCollapsed, 'nav-scrolled': isScrolled, 'nav-hidden': isHidden }">
     <div class="nav-container">
       <a href="/" class="nav-logo" @click.prevent="goHome">
         <div class="logo-icon">
@@ -233,7 +234,8 @@
         </div>
       </transition>
     </Teleport>
-  </nav>
+    </nav>
+  </div>
 </template>
 
 <script setup>

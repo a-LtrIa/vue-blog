@@ -52,7 +52,14 @@
               关注我
             </h3>
             <div class="social-grid">
-              <a v-for="link in socialLinks.slice(0, 6)" :key="link.id" :href="link.url" target="_blank" class="social-item">
+              <a
+                v-for="link in socialLinks.slice(0, 6)"
+                :key="link.id"
+                :href="isWebUrl(link.url) ? link.url : undefined"
+                :target="isWebUrl(link.url) ? '_blank' : undefined"
+                class="social-item"
+                @click.prevent="handleSocialClick(link)"
+              >
                 <component :is="getSocialIcon(link)" :size="22" class="social-icon" />
                 <span class="social-name">{{ link.platform }}</span>
               </a>
@@ -260,7 +267,14 @@
           </div>
           <div class="footer-col">
             <h4 class="footer-col-title">联系</h4>
-            <a v-for="link in socialLinks.slice(0, 4)" :key="link.id" :href="link.url" target="_blank" class="footer-link">
+            <a
+              v-for="link in socialLinks.slice(0, 4)"
+              :key="link.id"
+              :href="isWebUrl(link.url) ? link.url : undefined"
+              :target="isWebUrl(link.url) ? '_blank' : undefined"
+              class="footer-link"
+              @click.prevent="handleSocialClick(link)"
+            >
               <component :is="getSocialIcon(link)" :size="14" class="footer-link-icon" />
               {{ link.platform }}
             </a>
@@ -281,7 +295,9 @@
       :categories="categories"
       :tags="tags"
       @close="showProfileCard = false"
+      @copy="showToast"
     />
+    <ToastMessage message="已复制到剪贴板" :trigger="toastTrigger" />
   </div>
 </template>
 
@@ -341,6 +357,7 @@ import {
   TrendingUp,
   Award
 } from 'lucide-vue-next'
+import ToastMessage from './ToastMessage.vue'
 import AnnouncementCard from './AnnouncementCard.vue'
 import HitokotoCard from './HitokotoCard.vue'
 import TagsCard from './TagsCard.vue'
@@ -572,6 +589,42 @@ const getSocialIcon = (link) => {
     return iconComponentMap[link.icon]
   }
   return socialIconMap[link.platform] || Globe
+}
+
+const toastTrigger = ref(0)
+
+const showToast = () => {
+  toastTrigger.value++
+}
+
+const isWebUrl = (url) => {
+  return /^https?:\/\//i.test(url)
+}
+
+const getCopyText = (url) => {
+  return url.replace(/^mailto:/i, '')
+}
+
+const handleSocialClick = async (link) => {
+  if (isWebUrl(link.url)) {
+    window.open(link.url, '_blank', 'noopener,noreferrer')
+    return
+  }
+  const copyText = getCopyText(link.url)
+  try {
+    await navigator.clipboard.writeText(copyText)
+    showToast()
+  } catch {
+    const textarea = document.createElement('textarea')
+    textarea.value = copyText
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+    showToast()
+  }
 }
 
 const formatDate = (dateStr) => {
