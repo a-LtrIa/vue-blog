@@ -27,7 +27,7 @@ router.get('/:id', (req, res) => {
 })
 
 router.post('/', authMiddleware, (req, res) => {
-  const { name, slug, description, cover_image, sort_order = 0 } = req.body
+  const { name, slug, description, cover_image, icon, sort_order = 0 } = req.body
 
   if (!name || !slug) {
     return res.status(400).json({ error: '名称和 slug 不能为空' })
@@ -44,15 +44,15 @@ router.post('/', authMiddleware, (req, res) => {
   }
 
   const result = db.prepare(`
-    INSERT INTO categories (name, slug, description, cover_image, sort_order)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(name, slug, description, cover_image, sort_order)
+    INSERT INTO categories (name, slug, description, cover_image, icon, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(name, slug, description, cover_image, icon, sort_order)
 
   res.status(201).json({ id: result.lastInsertRowid, message: '分类创建成功' })
 })
 
 router.put('/:id', authMiddleware, (req, res) => {
-  const { name, slug, description, cover_image, sort_order } = req.body
+  const { name, slug, description, cover_image, icon, sort_order } = req.body
 
   const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(req.params.id)
   if (!category) {
@@ -79,9 +79,10 @@ router.put('/:id', authMiddleware, (req, res) => {
         slug = COALESCE(?, slug),
         description = COALESCE(?, description),
         cover_image = COALESCE(?, cover_image),
+        icon = COALESCE(?, icon),
         sort_order = COALESCE(?, sort_order)
     WHERE id = ?
-  `).run(name, slug, description, cover_image, sort_order, req.params.id)
+  `).run(name, slug, description, cover_image, icon, sort_order, req.params.id)
 
   res.json({ message: '分类更新成功' })
 })

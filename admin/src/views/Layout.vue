@@ -29,6 +29,9 @@
         <router-link to="/resources" class="nav-item" :class="{ active: $route.path.startsWith('/resources') }">
           📦 资源分享
         </router-link>
+        <router-link to="/announcements" class="nav-item" :class="{ active: $route.path.startsWith('/announcements') }">
+          📢 网站公告
+        </router-link>
       </nav>
       <div class="user-info">
         <span>{{ authStore.user?.username }}</span>

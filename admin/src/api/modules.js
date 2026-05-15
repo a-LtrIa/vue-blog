@@ -71,3 +71,11 @@ export const resourcesApi = {
   update: (id, data) => api.put(`/resources/${id}`, data),
   delete: (id) => api.delete(`/resources/${id}`)
 }
+
+export const announcementsApi = {
+  getAll: (params) => api.get('/announcements', { params }),
+  getOne: (id) => api.get(`/announcements/${id}`),
+  create: (data) => api.post('/announcements', data),
+  update: (id, data) => api.put(`/announcements/${id}`, data),
+  delete: (id) => api.delete(`/announcements/${id}`)
+}

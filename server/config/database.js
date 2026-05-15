@@ -114,6 +114,16 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS announcements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT '',
+    content TEXT NOT NULL,
+    status TEXT DEFAULT 'published',
+    sort_order INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `)
 
 // Migration: add post_type and external_url columns for existing databases
@@ -122,6 +132,16 @@ try {
 } catch (e) { /* column already exists */ }
 try {
   db.exec('ALTER TABLE posts ADD COLUMN external_url TEXT')
+} catch (e) { /* column already exists */ }
+
+// Migration: add title column for existing announcements table
+try {
+  db.exec('ALTER TABLE announcements ADD COLUMN title TEXT NOT NULL DEFAULT \'\'')
+} catch (e) { /* column already exists */ }
+
+// Migration: add icon column for categories table
+try {
+  db.exec('ALTER TABLE categories ADD COLUMN icon TEXT')
 } catch (e) { /* column already exists */ }
 
 // Initialize default data in async IIFE
@@ -193,6 +213,19 @@ try {
     const insertTool = db.prepare('INSERT INTO tools (name, description, url, icon, category, sort_order) VALUES (?, ?, ?, ?, ?, ?)')
     defaultTools.forEach(tool => {
       insertTool.run(...tool)
+    })
+  }
+
+  // Initialize default announcements
+  const initAnnouncements = db.prepare('SELECT COUNT(*) as count FROM announcements')
+  if (initAnnouncements.get().count === 0) {
+    const defaultAnnouncements = [
+      ['博客全新改版上线', '欢迎来到我的博客！本站采用玻璃拟态设计，正在持续更新中，敬请期待更多内容。', 0],
+      ['联系与反馈', '如有任何问题或建议，欢迎通过社交链接与我联系。', 1]
+    ]
+    const insertAnnouncement = db.prepare('INSERT INTO announcements (title, content, sort_order) VALUES (?, ?, ?)')
+    defaultAnnouncements.forEach(announcement => {
+      insertAnnouncement.run(...announcement)
     })
   }
 

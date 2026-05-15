@@ -82,6 +82,21 @@ const routes = [
         path: 'resources/:id/edit',
         name: 'ResourceEdit',
         component: () => import('./views/ResourceEdit.vue')
+      },
+      {
+        path: 'announcements',
+        name: 'Announcements',
+        component: () => import('./views/Announcements.vue')
+      },
+      {
+        path: 'announcements/new',
+        name: 'AnnouncementNew',
+        component: () => import('./views/AnnouncementEdit.vue')
+      },
+      {
+        path: 'announcements/:id/edit',
+        name: 'AnnouncementEdit',
+        component: () => import('./views/AnnouncementEdit.vue')
       }
     ]
   }

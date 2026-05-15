@@ -42,4 +42,8 @@ export const resourcesApi = {
   getAll: (params) => api.get('/resources', { params })
 }
 
+export const announcementsApi = {
+  getAll: (params) => api.get('/announcements', { params })
+}
+
 export default api

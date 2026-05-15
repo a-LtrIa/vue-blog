@@ -14,6 +14,7 @@ import backgroundRoutes, { ensureCache, startScheduler } from './routes/backgrou
 import visitsRoutes from './routes/visits.js'
 import toolsRoutes from './routes/tools.js'
 import resourcesRoutes from './routes/resources.js'
+import announcementsRoutes from './routes/announcements.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -47,6 +48,7 @@ app.use('/api/background', backgroundRoutes)
 app.use('/api/visits', visitsRoutes)
 app.use('/api/tools', toolsRoutes)
 app.use('/api/resources', resourcesRoutes)
+app.use('/api/announcements', announcementsRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Error:', err)

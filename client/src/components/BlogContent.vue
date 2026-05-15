@@ -150,7 +150,7 @@
           <div class="categories-grid">
             <div v-for="category in categories" :key="category.id" class="category-card" @click="goToCategory(category)">
               <div class="category-icon-wrap">
-                <component :is="getCategoryIcon(category.name)" :size="24" />
+                <component :is="getCategoryIcon(category)" :size="24" />
               </div>
               <div class="category-info">
                 <span class="category-name">{{ category.name }}</span>
@@ -323,7 +323,23 @@ import {
   Share2,
   Send,
   Phone,
-  MapPin
+  MapPin,
+  Zap,
+  Star,
+  Lightbulb,
+  Rocket,
+  Shield,
+  Terminal,
+  Database,
+  Cloud,
+  Settings,
+  Home,
+  User,
+  Users,
+  Briefcase,
+  ShoppingBag,
+  TrendingUp,
+  Award
 } from 'lucide-vue-next'
 import AnnouncementCard from './AnnouncementCard.vue'
 import HitokotoCard from './HitokotoCard.vue'
@@ -336,7 +352,7 @@ import ResourcesCard from './ResourcesCard.vue'
 import { toolsData } from '../data/tools.js'
 import { resourcesData } from '../data/resources.js'
 import { parseDate } from '../utils/date.js'
-import { toolsApi, resourcesApi } from '../api/index.js'
+import { toolsApi, resourcesApi, announcementsApi } from '../api/index.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -362,50 +378,16 @@ const backTarget = ref('/articles')
 const showProfileCard = ref(false)
 
 // 公告数据
-const announcements = ref([
-  {
-    id: 1,
-    title: '博客全新改版上线，采用玻璃拟态设计',
-    content: '经过数周的努力，博客终于完成了全新改版！这次改版采用了流行的玻璃拟态设计风格，配合电影感的视觉效果，希望能给大家带来更好的阅读体验。',
-    created_at: '2025-05-10T08:00:00Z'
-  },
-  {
-    id: 2,
-    title: '新增公告功能，随时了解网站动态',
-    content: '为了方便大家及时了解网站的最新动态，我们新增了公告功能。重要更新、维护通知等都会在这里发布。',
-    created_at: '2025-05-08T14:30:00Z'
-  },
-  {
-    id: 3,
-    title: '系统维护通知：本周日凌晨 2-4 点',
-    content: '为了提升网站性能，我们将于本周日凌晨 2-4 点进行系统维护。维护期间网站可能无法访问，请提前做好准备。',
-    created_at: '2025-05-05T10:00:00Z'
-  },
-  {
-    id: 4,
-    title: '如何写出高质量的技术博客文章',
-    content: '分享一些写作心得：1. 选题要聚焦具体问题；2. 结构清晰，层次分明；3. 代码示例要可运行；4. 配图要清晰美观。',
-    created_at: '2025-05-01T16:20:00Z'
-  },
-  {
-    id: 5,
-    title: '推荐几个好用的设计资源网站',
-    content: '1. Figma - 协作设计神器；2. Unsplash - 高质量免费图片；3. Iconify - 海量图标库；4. Coolors - 配色方案生成器。',
-    created_at: '2025-04-28T09:15:00Z'
-  },
-  {
-    id: 6,
-    title: 'Vue 3 Composition API 最佳实践',
-    content: '在使用 Vue 3 的 Composition API 时，建议：1. 合理拆分 composable；2. 使用 ref 和 reactive 要有区分；3. 注意生命周期钩子的使用场景。',
-    created_at: '2025-04-25T11:30:00Z'
-  },
-  {
-    id: 7,
-    title: '网站性能优化完成，加载速度提升 40%',
-    content: '通过图片懒加载、代码分割、CDN 加速等手段，网站整体加载速度提升了 40%。感谢大家的耐心等待！',
-    created_at: '2025-04-20T08:00:00Z'
+const announcements = ref([])
+
+const fetchAnnouncements = async () => {
+  try {
+    const { data } = await announcementsApi.getAll({ status: 'published' })
+    announcements.value = data
+  } catch (err) {
+    console.error('加载公告失败:', err)
   }
-])
+}
 
 const tools = ref([])
 
@@ -469,6 +451,7 @@ onMounted(() => {
   runningTimer = setInterval(updateRunningTime, 1000)
   fetchTools()
   fetchResources()
+  fetchAnnouncements()
 })
 onUnmounted(() => {
   if (runningTimer) clearInterval(runningTimer)
@@ -493,8 +476,19 @@ const categoryIcons = {
   '随笔': PenLine
 }
 
-const getCategoryIcon = (name) => {
-  return categoryIcons[name] || FileText
+const iconNameMap = {
+  Code2, Server, Palette, Smartphone, BarChart3, Box, Wrench,
+  Sun, PenLine, FileText, Globe, BookOpen, Coffee, Heart,
+  Camera, Music, Video, MessageCircle, Zap, Star, Lightbulb,
+  Rocket, Shield, Terminal, Database, Cloud, Settings, Home,
+  User, Users, Briefcase, ShoppingBag, TrendingUp, Award
+}
+
+const getCategoryIcon = (category) => {
+  if (category.icon && iconNameMap[category.icon]) {
+    return iconNameMap[category.icon]
+  }
+  return categoryIcons[category.name] || FileText
 }
 
 // 哔哩哔哩 SVG 图标组件
@@ -1135,6 +1129,7 @@ watch(() => route.query.read, async (slug) => {
 .post-featured .post-excerpt {
   font-size: 14px;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
 }
 
 .post-image {
@@ -1208,6 +1203,7 @@ watch(() => route.query.read, async (slug) => {
   color: var(--text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
