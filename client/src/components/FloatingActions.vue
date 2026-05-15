@@ -237,7 +237,6 @@ const togglePlay = async () => {
     isPlaying.value = false
     stopProgressTimer()
   } else {
-    audioEl.src = currentSong.value.audio_url
     try {
       await audioEl.play()
       isPlaying.value = true
@@ -897,7 +896,7 @@ onUnmounted(() => {
 
 .fab-music-card {
   position: absolute;
-  right: 58px;
+  right: 62px;
   top: 50%;
   transform: translateX(10px) translateY(-50%);
   display: flex;
@@ -908,11 +907,18 @@ onUnmounted(() => {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  border-radius: 24px;
+  corner-shape: superellipse(2);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@supports not (corner-shape: superellipse(2)) {
+  .fab-music-card {
+    border-radius: 24px;
+  }
 }
 
 .fab-music-wrapper:hover .fab-music-card {
