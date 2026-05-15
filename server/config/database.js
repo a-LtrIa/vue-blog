@@ -136,6 +136,21 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS music (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    artist TEXT DEFAULT '',
+    album TEXT DEFAULT '',
+    cover_url TEXT,
+    audio_url TEXT NOT NULL,
+    duration INTEGER DEFAULT 0,
+    sort_order INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'published',
+    play_count INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `)
 
 // Migration: add post_type and external_url columns for existing databases

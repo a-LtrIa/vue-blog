@@ -35,6 +35,9 @@
         <router-link to="/friend-links" class="nav-item" :class="{ active: $route.path.startsWith('/friend-links') }">
           🔗 友情链接
         </router-link>
+        <router-link to="/music" class="nav-item" :class="{ active: $route.path.startsWith('/music') }">
+          🎵 音乐管理
+        </router-link>
       </nav>
       <div class="user-info">
         <span>{{ authStore.user?.username }}</span>

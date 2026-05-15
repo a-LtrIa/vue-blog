@@ -112,8 +112,27 @@ const routes = [
         path: 'friend-links/:id/edit',
         name: 'FriendLinkEdit',
         component: () => import('./views/FriendLinkEdit.vue')
+      },
+      {
+        path: 'music',
+        name: 'Music',
+        component: () => import('./views/Music.vue')
+      },
+      {
+        path: 'music/new',
+        name: 'MusicNew',
+        component: () => import('./views/MusicEdit.vue')
+      },
+      {
+        path: 'music/:id/edit',
+        name: 'MusicEdit',
+        component: () => import('./views/MusicEdit.vue')
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 

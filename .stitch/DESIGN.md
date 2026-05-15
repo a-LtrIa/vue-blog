@@ -14,9 +14,7 @@
 ## 色彩系统
 
 ### 主色调
-- **Primary**: `#7877C6` - 紫罗兰色，用于强调
-- **Primary Glow**: `rgba(120, 119, 198, 0.6)` - 发光效果
-- **Secondary**: `#FF77C6` - 粉色调，用于点缀
+
 
 ### 玻璃拟态色彩
 - **Glass Light**: `rgba(255, 255, 255, 0.1)` - 浅色玻璃
@@ -122,6 +120,224 @@
   transform: translateY(-2px) scale(1.02);
   border-color: rgba(255, 255, 255, 0.5);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+```
+
+### 浮动操作按钮（FAB）
+```css
+.fab-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fab-btn:hover {
+  transform: translateY(-3px) scale(1.08);
+  border-color: rgba(255, 255, 255, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.fab-btn:active {
+  transform: translateY(-1px) scale(0.95);
+  transition-duration: 0.1s;
+}
+```
+
+### FAB 光泽效果
+```css
+.fab-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    135deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 70%
+  );
+  z-index: 1;
+  transform: translateX(-100%) translateY(-100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.fab-btn:hover .fab-shine {
+  transform: translateX(30%) translateY(30%);
+}
+```
+
+### FAB 光环效果
+```css
+.fab-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fab-btn:hover .fab-ring {
+  border-color: rgba(255, 255, 255, 0.2);
+  inset: -4px;
+}
+```
+
+### FAB 工具提示
+```css
+.fab-tooltip {
+  position: absolute;
+  right: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fab-wrapper:hover .fab-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+```
+
+### 音乐播放器卡片
+```css
+.fab-music-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(10px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fab-music-wrapper:hover .fab-music-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.music-cover-wrap {
+  width: 52px;
+  height: 52px;
+}
+
+.music-cover {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+```
+
+### 音乐封面旋转
+```css
+.music-cover-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  animation: music-rotate 8s linear infinite;
+  animation-play-state: paused;
+}
+
+.music-cover-thumb.is-playing {
+  animation-play-state: running;
+}
+
+@keyframes music-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+```
+
+### 播放进度条
+```css
+.music-progress {
+  margin-top: 6px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+```
+
+### 音乐控制按钮
+```css
+.music-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.music-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.music-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.music-toggle {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
 }
 ```
 

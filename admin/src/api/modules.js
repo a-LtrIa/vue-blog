@@ -46,6 +46,20 @@ export const uploadApi = {
     return api.post('/upload/image', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
+  },
+  uploadAudio: (file) => {
+    const formData = new FormData()
+    formData.append('audio', file)
+    return api.post('/upload/audio', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+  uploadAudioWithMetadata: (file) => {
+    const formData = new FormData()
+    formData.append('audio', file)
+    return api.post('/upload/audio/metadata', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
   }
 }
 
@@ -86,4 +100,13 @@ export const friendLinksApi = {
   create: (data) => api.post('/friend-links', data),
   update: (id, data) => api.put(`/friend-links/${id}`, data),
   delete: (id) => api.delete(`/friend-links/${id}`)
+}
+
+export const musicApi = {
+  getAll: (params) => api.get('/music', { params }),
+  getOne: (id) => api.get(`/music/${id}`),
+  create: (data) => api.post('/music', data),
+  update: (id, data) => api.put(`/music/${id}`, data),
+  delete: (id) => api.delete(`/music/${id}`),
+  recordPlay: (id) => api.post(`/music/${id}/play`)
 }

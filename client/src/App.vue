@@ -23,12 +23,14 @@
       :bgLoaded="bgLoaded"
     />
 
+    <FloatingActions :bg-image="bgImage" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { settingsApi, categoriesApi, postsApi, tagsApi, backgroundApi } from './api/index.js'
+import FloatingActions from './components/FloatingActions.vue'
 
 const bgImage = ref('')
 const bgLoaded = ref(false)

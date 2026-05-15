@@ -50,4 +50,10 @@ export const friendLinksApi = {
   getAll: (params) => api.get('/friend-links', { params })
 }
 
+export const musicApi = {
+  getAll: (params) => api.get('/music', { params }),
+  getRandom: () => api.get('/music', { params: { random: true } }),
+  recordPlay: (id) => api.post(`/music/${id}/play`)
+}
+
 export default api

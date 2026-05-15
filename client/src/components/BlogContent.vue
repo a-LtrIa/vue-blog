@@ -66,9 +66,6 @@
             </div>
           </div>
 
-          <!-- Background Actions Card -->
-          <BackgroundActions :bg-image="bgImage" />
-
           <!-- Site Info Card -->
           <div class="sidebar-card site-info">
             <h3 class="card-title">
@@ -361,7 +358,6 @@ import ToastMessage from './ToastMessage.vue'
 import AnnouncementCard from './AnnouncementCard.vue'
 import HitokotoCard from './HitokotoCard.vue'
 import TagsCard from './TagsCard.vue'
-import BackgroundActions from './BackgroundActions.vue'
 import ProfileCard from './ProfileCard.vue'
 import VisitsChart from './VisitsChart.vue'
 import ToolsCard from './ToolsCard.vue'
