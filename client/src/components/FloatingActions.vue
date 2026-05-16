@@ -120,6 +120,59 @@
         <span>{{ toastMessage }}</span>
       </div>
     </Transition>
+
+    <Transition name="viewer-fade">
+      <div v-if="showFeedback" class="feedback-overlay" @click.self="closeFeedback">
+        <div class="feedback-modal">
+          <div class="feedback-header">
+            <h3>留言反馈</h3>
+            <button class="feedback-close" @click="closeFeedback">
+              <X :size="18" />
+            </button>
+          </div>
+          <div class="feedback-body">
+            <div class="feedback-form">
+              <div class="feedback-input-row">
+                <div class="feedback-input-group flex-1">
+                  <label>用户名 <span class="required">*</span></label>
+                  <input
+                    v-model="feedbackUsername"
+                    type="text"
+                    placeholder="请输入您的用户名"
+                  />
+                </div>
+                <div class="feedback-input-group flex-1">
+                  <label>邮箱</label>
+                  <input
+                    v-model="feedbackEmail"
+                    type="email"
+                    placeholder="请输入您的邮箱（以便收到回复）"
+                  />
+                </div>
+              </div>
+              <div class="feedback-input-group">
+                <label>留言内容 <span class="required">*</span></label>
+                <textarea
+                  v-model="feedbackContent"
+                  placeholder="请输入您的留言或反馈..."
+                  rows="4"
+                ></textarea>
+              </div>
+              <div class="feedback-rate-limit">
+                <span>每 IP 每分钟可留言 1 次，每小时最多 100 条</span>
+              </div>
+              <button
+                class="btn-feedback-submit"
+                @click="submitFeedback"
+                :disabled="feedbackLoading || !feedbackUsername.trim() || !feedbackContent.trim()"
+              >
+                {{ feedbackLoading ? '提交中...' : '提交留言' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -137,7 +190,8 @@ import {
   Play,
   Pause,
   SkipBack,
-  SkipForward
+  SkipForward,
+  X
 } from 'lucide-vue-next'
 import { backgroundApi, musicApi } from '../api/index.js'
 
@@ -155,6 +209,12 @@ const toastMessage = ref('')
 const showViewer = ref(false)
 const currentBgImage = ref(props.bgImage)
 const showMusicPlayer = ref(false)
+const showFeedback = ref(false)
+const feedbackUsername = ref('')
+const feedbackEmail = ref('')
+const feedbackContent = ref('')
+const feedbackLoading = ref(false)
+const feedbackList = ref([])
 const musicList = ref([])
 const currentIndex = ref(0)
 const isPlaying = ref(false)
@@ -180,6 +240,18 @@ const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
   return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diff = now - date
+  if (diff < 60000) return '刚刚'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`
+  return date.toLocaleDateString('zh-CN')
 }
 
 const progressPercent = computed(() => {
@@ -338,7 +410,7 @@ const handleAction = async (btn) => {
       sharePage()
       break
     case 'message':
-      goToComments()
+      toggleFeedback()
       break
   }
 }
@@ -430,12 +502,66 @@ const fallbackCopy = (text) => {
   showToast('链接已复制到剪贴板')
 }
 
-const goToComments = () => {
-  const commentSection = document.getElementById('comments')
-  if (commentSection) {
-    commentSection.scrollIntoView({ behavior: 'smooth' })
-  } else {
-    showToast('暂无评论区')
+const toggleFeedback = async () => {
+  showFeedback.value = !showFeedback.value
+}
+
+const closeFeedback = () => {
+  showFeedback.value = false
+  feedbackUsername.value = ''
+  feedbackEmail.value = ''
+  feedbackContent.value = ''
+}
+
+const loadFeedbackList = async () => {
+  try {
+    const res = await fetch('/api/feedback?limit=10')
+    const data = await res.json()
+    if (data.success) {
+      feedbackList.value = data.data
+    }
+  } catch (err) {
+    console.error('加载留言列表失败', err)
+  }
+}
+
+const submitFeedback = async () => {
+  if (!feedbackUsername.value.trim()) {
+    showToast('请输入用户名')
+    return
+  }
+
+  if (!feedbackContent.value.trim()) {
+    showToast('请输入留言内容')
+    return
+  }
+
+  feedbackLoading.value = true
+  try {
+    const res = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: feedbackUsername.value.trim(),
+        email: feedbackEmail.value.trim() || '',
+        content: feedbackContent.value.trim()
+      })
+    })
+    const data = await res.json()
+    if (data.success) {
+      showToast('留言提交成功')
+      feedbackContent.value = ''
+      feedbackEmail.value = ''
+      feedbackUsername.value = ''
+    } else {
+      showToast(data.message || '提交失败')
+    }
+  } catch (err) {
+    showToast('提交失败，请稍后重试')
+  } finally {
+    feedbackLoading.value = false
   }
 }
 
@@ -1103,4 +1229,196 @@ onUnmounted(() => {
     margin-bottom: 10px;
   }
 }
+
+/* Feedback Modal */
+.feedback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.feedback-modal {
+  width: 90%;
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(80px) saturate(200%);
+  -webkit-backdrop-filter: blur(80px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.feedback-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.feedback-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feedback-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.feedback-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feedback-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feedback-input-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.feedback-input-group input,
+.feedback-input-group textarea {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  resize: none;
+}
+
+.feedback-input-group input::placeholder,
+.feedback-input-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.feedback-input-group input:focus,
+.feedback-input-group textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.feedback-rate-limit {
+  text-align: center;
+}
+
+.feedback-rate-limit span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-feedback-submit {
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-feedback-submit:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-feedback-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.feedback-input-row {
+  display: flex;
+  gap: 12px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.required {
+  color: #ff6b6b;
+}
+
+.viewer-fade-enter-active,
+.viewer-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.viewer-fade-enter-from,
+.viewer-fade-leave-to {
+  opacity: 0;
+}
+
+.viewer-fade-enter-active .feedback-modal,
+.viewer-fade-leave-active .feedback-modal {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.viewer-fade-enter-from .feedback-modal,
+.viewer-fade-leave-to .feedback-modal {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+}
+
+@media (max-width: 480px) {
+  .feedback-modal {
+    max-width: 95%;
+    max-height: 85vh;
+  }
+  .feedback-input-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
 </style>
+  border-radius: 16px;

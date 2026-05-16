@@ -38,6 +38,9 @@
         <router-link to="/music" class="nav-item" :class="{ active: $route.path.startsWith('/music') }">
           🎵 音乐管理
         </router-link>
+        <router-link to="/feedback" class="nav-item" :class="{ active: $route.path.startsWith('/feedback') }">
+          💬 留言管理
+        </router-link>
       </nav>
       <div class="user-info">
         <span>{{ authStore.user?.username }}</span>

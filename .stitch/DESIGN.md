@@ -490,3 +490,47 @@
 - **lg**: 24px - 大卡片
 - **xl**: 40px - Hero 卡片
 - **full**: 9999px - 圆形元素
+
+## 邮箱通知系统
+
+### 功能概述
+留言反馈系统支持邮件通知功能，包括：
+- **管理员通知**：游客提交留言时，管理员收到邮件通知
+- **用户通知**：管理员回复留言时，游客收到邮件通知
+
+### 配置项
+| 配置项 | 说明 | 默认值 |
+|--------|------|--------|
+| smtp_host | SMTP 服务器地址 | - |
+| smtp_port | SMTP 端口号 | 465 |
+| smtp_secure | 是否使用 SSL/TLS 加密 | true |
+| smtp_user | SMTP 用户名 | - |
+| smtp_password | SMTP 密码 | - |
+| from_email | 发件人邮箱 | - |
+| admin_email | 管理员邮箱（接收通知） | - |
+| notify_admin | 游客留言时发送通知 | true |
+| notify_user | 回复时发送通知给用户 | true |
+
+### 数据库表结构
+```sql
+CREATE TABLE IF NOT EXISTS email_settings (
+  id INTEGER PRIMARY KEY,
+  smtp_host TEXT DEFAULT '',
+  smtp_port INTEGER DEFAULT 465,
+  smtp_secure INTEGER DEFAULT 1,
+  smtp_user TEXT DEFAULT '',
+  smtp_password TEXT DEFAULT '',
+  from_email TEXT DEFAULT '',
+  admin_email TEXT DEFAULT '',
+  notify_admin INTEGER DEFAULT 1,
+  notify_user INTEGER DEFAULT 1
+);
+```
+
+### API 端点
+- `GET /api/email` - 获取邮箱设置
+- `POST /api/email` - 保存邮箱设置
+- `POST /api/email/test` - 发送测试邮件
+
+### 邮件模板
+邮件使用 HTML 格式，包含完整的样式设计，与博客整体风格保持一致。

@@ -151,6 +151,31 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    email TEXT DEFAULT '',
+    content TEXT NOT NULL,
+    is_public INTEGER DEFAULT 1,
+    ip TEXT NOT NULL,
+    reply TEXT DEFAULT '',
+    reply_created_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS email_settings (
+    id INTEGER PRIMARY KEY,
+    smtp_host TEXT DEFAULT '',
+    smtp_port INTEGER DEFAULT 465,
+    smtp_secure INTEGER DEFAULT 1,
+    smtp_user TEXT DEFAULT '',
+    smtp_password TEXT DEFAULT '',
+    from_email TEXT DEFAULT '',
+    admin_email TEXT DEFAULT '',
+    notify_admin INTEGER DEFAULT 1,
+    notify_user INTEGER DEFAULT 1
+  );
 `)
 
 // Migration: add post_type and external_url columns for existing databases
@@ -189,7 +214,7 @@ try {
       ['site_name', 'ALT的博客'],
       ['site_description', '记录技术、生活与思考'],
       ['author_name', 'ALT'],
-      ['author_bio', '前端工程师 | 热爱开源与设计'],
+      ['author_bio', '梦想是成为独立开发者…'],
       ['background_url', 'https://www.loliapi.com/acg/'],
       ['avatar_url', '']
     ]

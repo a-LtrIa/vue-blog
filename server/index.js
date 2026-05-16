@@ -17,6 +17,8 @@ import resourcesRoutes from './routes/resources.js'
 import announcementsRoutes from './routes/announcements.js'
 import friendLinksRoutes from './routes/friend-links.js'
 import musicRoutes from './routes/music.js'
+import feedbackRoutes from './routes/feedback.js'
+import emailRoutes from './routes/email.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -53,6 +55,8 @@ app.use('/api/resources', resourcesRoutes)
 app.use('/api/announcements', announcementsRoutes)
 app.use('/api/friend-links', friendLinksRoutes)
 app.use('/api/music', musicRoutes)
+app.use('/api/feedback', feedbackRoutes)
+app.use('/api/email', emailRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Error:', err)

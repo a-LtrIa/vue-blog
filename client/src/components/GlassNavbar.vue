@@ -11,9 +11,7 @@
     <nav class="glass-navbar" :class="{ 'nav-collapsed': isCollapsed, 'nav-scrolled': isScrolled, 'nav-hidden': isHidden }">
     <div class="nav-container">
       <a href="/" class="nav-logo" @click.prevent="goHome">
-        <div class="logo-icon">
-          <span class="logo-text">{{ logoText }}</span>
-        </div>
+        <img src="../assets/logo.svg" alt="Logo" class="logo-img" />
         <span class="logo-brand">{{ siteName }}</span>
       </a>
 
@@ -274,7 +272,7 @@ const searchResults = ref([])
 const searchInput = ref(null)
 const selectedIndex = ref(0)
 
-const logoText = computed(() => props.siteName.charAt(0).toUpperCase())
+
 
 const friendsList = ref([])
 
@@ -462,21 +460,10 @@ onUnmounted(() => {
   opacity: 0.8;
 }
 
-.logo-icon {
+.logo-img {
   width: 38px;
   height: 38px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-text {
-  font-size: 17px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
+  object-fit: contain;
 }
 
 .logo-brand {

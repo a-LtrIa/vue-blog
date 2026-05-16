@@ -127,6 +127,11 @@ const routes = [
         path: 'music/:id/edit',
         name: 'MusicEdit',
         component: () => import('./views/MusicEdit.vue')
+      },
+      {
+        path: 'feedback',
+        name: 'Feedback',
+        component: () => import('./views/Feedback.vue')
       }
     ]
   },

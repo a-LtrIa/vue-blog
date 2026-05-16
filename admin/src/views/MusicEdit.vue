@@ -281,7 +281,6 @@ onMounted(async () => {
 }
 
 .audio-upload.drag-over {
-  border-color: #7877c6;
   background: rgba(120, 119, 198, 0.1);
 }
 
@@ -321,14 +320,7 @@ onMounted(async () => {
   transition: border-color 0.3s, background 0.3s;
 }
 
-.image-upload:hover {
-  border-color: #7877c6;
-}
 
-.image-upload.drag-over {
-  border-color: #7877c6;
-  background: rgba(120, 119, 198, 0.1);
-}
 
 .image-upload input {
   display: none;

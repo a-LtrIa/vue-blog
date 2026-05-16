@@ -102,12 +102,80 @@
         </button>
       </form>
     </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>邮箱设置</h3>
+      </div>
+      <form @submit.prevent="saveEmailSettings">
+        <div class="form-row">
+          <div class="form-group">
+            <label>SMTP 服务器</label>
+            <input v-model="emailSettings.smtp_host" type="text" placeholder="smtp.example.com" />
+          </div>
+          <div class="form-group">
+            <label>SMTP 端口</label>
+            <input v-model="emailSettings.smtp_port" type="number" placeholder="465" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" v-model="emailSettings.smtp_secure" /> 使用 SSL/TLS 加密
+          </label>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>SMTP 用户名</label>
+            <input v-model="emailSettings.smtp_user" type="text" placeholder="your@email.com" />
+          </div>
+          <div class="form-group">
+            <label>SMTP 密码</label>
+            <input v-model="emailSettings.smtp_password" type="password" placeholder="留空则保持不变" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>发件人邮箱</label>
+            <input v-model="emailSettings.from_email" type="email" placeholder="your@email.com" />
+          </div>
+          <div class="form-group">
+            <label>管理员邮箱（接收通知）</label>
+            <input v-model="emailSettings.admin_email" type="email" placeholder="admin@email.com" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" v-model="emailSettings.notify_admin" /> 游客留言时发送邮件通知
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" v-model="emailSettings.notify_user" /> 回复游客时发送邮件通知
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" :disabled="savingEmail">
+            {{ savingEmail ? '保存中...' : '保存邮箱设置' }}
+          </button>
+          <button type="button" class="btn btn-secondary" @click="testEmail" :disabled="testingEmail">
+            {{ testingEmail ? '测试中...' : '发送测试邮件' }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { settingsApi, uploadApi, authApi } from '../api/modules.js'
+import { emailApi } from '../api/modules.js'
 import { SOCIAL_ICONS } from '../config/icons.js'
 
 const settings = ref({
@@ -127,6 +195,57 @@ const passwordForm = ref({
   oldPassword: '',
   newPassword: ''
 })
+
+const emailSettings = ref({
+  smtp_host: '',
+  smtp_port: 465,
+  smtp_secure: true,
+  smtp_user: '',
+  smtp_password: '',
+  from_email: '',
+  admin_email: '',
+  notify_admin: true,
+  notify_user: true
+})
+
+const savingEmail = ref(false)
+const testingEmail = ref(false)
+
+const loadEmailSettings = async () => {
+  try {
+    const { data } = await emailApi.getSettings()
+    emailSettings.value = { ...emailSettings.value, ...data }
+    if (emailSettings.value.smtp_password === '********') {
+      emailSettings.value.smtp_password = ''
+    }
+  } catch (err) {
+    console.error('加载邮箱设置失败:', err)
+  }
+}
+
+const saveEmailSettings = async () => {
+  savingEmail.value = true
+  try {
+    await emailApi.saveSettings(emailSettings.value)
+    alert('邮箱设置保存成功')
+  } catch (err) {
+    alert('保存失败')
+  } finally {
+    savingEmail.value = false
+  }
+}
+
+const testEmail = async () => {
+  testingEmail.value = true
+  try {
+    await emailApi.testEmail(emailSettings.value)
+    alert('测试邮件发送成功')
+  } catch (err) {
+    alert('发送失败: ' + (err.response?.data?.message || err.message))
+  } finally {
+    testingEmail.value = false
+  }
+}
 
 const loadSettings = async () => {
   const { data } = await settingsApi.getAll()
@@ -225,6 +344,7 @@ const changePassword = async () => {
 onMounted(() => {
   loadSettings()
   loadSocialLinks()
+  loadEmailSettings()
 })
 </script>
 
@@ -234,5 +354,24 @@ onMounted(() => {
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
 }
 </style>

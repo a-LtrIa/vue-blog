@@ -110,3 +110,15 @@ export const musicApi = {
   delete: (id) => api.delete(`/music/${id}`),
   recordPlay: (id) => api.post(`/music/${id}/play`)
 }
+
+export const emailApi = {
+  getSettings: () => api.get('/email'),
+  saveSettings: (data) => api.post('/email', data),
+  testEmail: (data) => api.post('/email/test', data)
+}
+
+export const feedbackApi = {
+  getAll: () => api.get('/feedback/all'),
+  reply: (id, data) => api.put(`/feedback/${id}/reply`, data),
+  delete: (id) => api.delete(`/feedback/${id}`)
+}
