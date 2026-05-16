@@ -1,12 +1,14 @@
 import express from 'express'
 import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { dirname, join, extname } from 'path'
 import { existsSync, mkdirSync, readdirSync, unlinkSync, createWriteStream, readFileSync, writeFileSync, statSync } from 'fs'
 import https from 'https'
 import http from 'http'
 import crypto from 'crypto'
 import { getChinaDateString } from '../utils/date.js'
 import db from '../config/database.js'
+import multer from 'multer'
+import { v4 as uuidv4 } from 'uuid'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -97,6 +99,21 @@ const clearCache = () => {
   }
 }
 
+const getExtFromContentType = (contentType) => {
+  if (!contentType) return '.jpg'
+  const typeMap = {
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/png': '.png',
+    'image/gif': '.gif',
+    'image/webp': '.webp'
+  }
+  for (const [type, ext] of Object.entries(typeMap)) {
+    if (contentType.includes(type)) return ext
+  }
+  return '.jpg'
+}
+
 const downloadImage = (url) => {
   return new Promise((resolve, reject) => {
     const followRedirect = (currentUrl, redirectCount = 0) => {
@@ -117,7 +134,8 @@ const downloadImage = (url) => {
           return
         }
 
-        const ext = '.jpg'
+        const contentType = res.headers['content-type'] || ''
+        const ext = getExtFromContentType(contentType)
         const filename = `${crypto.randomUUID()}${ext}`
         const filepath = join(CACHE_DIR, filename)
         const stream = createWriteStream(filepath)
@@ -141,18 +159,25 @@ const saveMeta = (meta) => {
 
 const fetchAndCacheImages = async () => {
   ensureCacheDir()
-  clearCache()
 
-  const filenames = []
-  const errors = []
+  const meta = getCachedMeta() || { preserved: [] }
+  const preservedFiles = meta.preserved || []
 
-  for (let i = 0; i < IMAGE_COUNT; i++) {
+  const existingFiles = readdirSync(CACHE_DIR).filter(f => f !== 'meta.json' && !preservedFiles.includes(f))
+  for (const file of existingFiles) {
+    unlinkSync(join(CACHE_DIR, file))
+  }
+
+  const currentCount = preservedFiles.length
+  const neededCount = Math.max(0, IMAGE_COUNT - currentCount)
+  const filenames = [...preservedFiles]
+
+  for (let i = 0; i < neededCount; i++) {
     try {
       const filename = await downloadImage(LOLIAPI_URL)
       filenames.push(filename)
     } catch (err) {
       console.error(`Failed to download image ${i + 1}:`, err.message)
-      errors.push(err.message)
     }
   }
 
@@ -160,15 +185,16 @@ const fetchAndCacheImages = async () => {
     throw new Error('Failed to download any images')
   }
 
-  const meta = {
+  const newMeta = {
     date: getToday(),
     lastRefresh: new Date().toISOString(),
     count: filenames.length,
-    files: filenames
+    files: filenames,
+    preserved: preservedFiles
   }
-  saveMeta(meta)
+  saveMeta(newMeta)
 
-  return meta
+  return newMeta
 }
 
 const getCachedMeta = () => {
@@ -363,6 +389,134 @@ const stopScheduler = () => {
     schedulerTimer = null
   }
 }
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      ensureCacheDir()
+      cb(null, CACHE_DIR)
+    },
+    filename: (req, file, cb) => {
+      const ext = extname(file.originalname)
+      cb(null, `${uuidv4()}${ext}`)
+    }
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('只支持 JPEG、PNG、GIF、WebP 格式的图片'))
+    }
+  }
+})
+
+router.post('/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: '请选择要上传的图片' })
+    }
+
+    const meta = getCachedMeta() || { files: [], preserved: [] }
+    meta.files = meta.files || []
+    meta.preserved = meta.preserved || []
+
+    meta.files.push(req.file.filename)
+    meta.preserved.push(req.file.filename)
+    meta.count = meta.files.length
+    saveMeta(meta)
+
+    res.json({
+      message: '图片已上传并收藏',
+      filename: req.file.filename,
+      url: `/cache/backgrounds/${req.file.filename}`,
+      isPreserved: true
+    })
+  } catch (error) {
+    console.error('Background upload error:', error)
+    res.status(500).json({ error: '上传图片失败' })
+  }
+})
+
+router.post('/:filename/preserve', async (req, res) => {
+  try {
+    const { filename } = req.params
+
+    if (filename.includes('/') || filename.includes('..') || filename === 'meta.json') {
+      return res.status(400).json({ error: '无效的文件名' })
+    }
+
+    const meta = getCachedMeta()
+    if (!meta || !meta.files.includes(filename)) {
+      return res.status(404).json({ error: '图片不存在' })
+    }
+
+    meta.preserved = meta.preserved || []
+    if (!meta.preserved.includes(filename)) {
+      meta.preserved.push(filename)
+      saveMeta(meta)
+    }
+
+    res.json({ message: '图片已收藏', filename, isPreserved: true })
+  } catch (error) {
+    console.error('Background preserve error:', error)
+    res.status(500).json({ error: '收藏图片失败' })
+  }
+})
+
+router.post('/:filename/unpreserve', async (req, res) => {
+  try {
+    const { filename } = req.params
+
+    if (filename.includes('/') || filename.includes('..') || filename === 'meta.json') {
+      return res.status(400).json({ error: '无效的文件名' })
+    }
+
+    const meta = getCachedMeta()
+    if (!meta || !meta.preserved) {
+      return res.status(404).json({ error: '图片未收藏' })
+    }
+
+    meta.preserved = meta.preserved.filter(f => f !== filename)
+    saveMeta(meta)
+
+    res.json({ message: '图片已取消收藏', filename, isPreserved: false })
+  } catch (error) {
+    console.error('Background unpreserve error:', error)
+    res.status(500).json({ error: '取消收藏失败' })
+  }
+})
+
+router.get('/preserved', async (req, res) => {
+  try {
+    const meta = getCachedMeta()
+    const preservedFiles = meta?.preserved || []
+
+    const images = preservedFiles.map(filename => {
+      const filepath = join(CACHE_DIR, filename)
+      let size = 0
+      let mtime = null
+      try {
+        const stats = statSync(filepath)
+        size = stats.size
+        mtime = stats.mtime
+      } catch {}
+
+      return {
+        filename,
+        url: `/cache/backgrounds/${filename}`,
+        size,
+        updatedAt: mtime
+      }
+    })
+
+    res.json({ images, count: images.length })
+  } catch (error) {
+    console.error('Background preserved list error:', error)
+    res.status(500).json({ error: '获取收藏图片列表失败' })
+  }
+})
 
 export { ensureCache, startScheduler, stopScheduler }
 export default router

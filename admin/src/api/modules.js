@@ -67,7 +67,17 @@ export const backgroundApi = {
   list: () => api.get('/background/list'),
   delete: (filename) => api.delete(`/background/${filename}`),
   fetch: () => api.post('/background/fetch'),
-  refresh: () => api.post('/background/refresh')
+  refresh: () => api.post('/background/refresh'),
+  preserved: () => api.get('/background/preserved'),
+  preserve: (filename) => api.post(`/background/${filename}/preserve`),
+  unpreserve: (filename) => api.post(`/background/${filename}/unpreserve`),
+  upload: (file) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return api.post('/background/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  }
 }
 
 export const toolsApi = {
