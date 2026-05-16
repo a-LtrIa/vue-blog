@@ -211,7 +211,7 @@ try {
   const initSettings = db.prepare('SELECT COUNT(*) as count FROM settings')
   if (initSettings.get().count === 0) {
     const defaultSettings = [
-      ['site_name', 'ALT的博客'],
+      ['site_name', 'ALT的饭桌会议'],
       ['site_description', '记录技术、生活与思考'],
       ['author_name', 'ALT'],
       ['author_bio', '梦想是成为独立开发者…'],

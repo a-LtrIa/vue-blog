@@ -139,7 +139,7 @@
         <div class="welcome-banner">
           <div class="welcome-text">
             <h1 class="welcome-title">探索技术与设计</h1>
-            <p class="welcome-desc">分享前端开发、UI 设计和生活中的点滴思考</p>
+            <p class="welcome-desc">分享学习和生活中的点滴思考</p>
           </div>
         </div>
 
@@ -249,38 +249,64 @@
 
     <!-- Footer -->
     <footer class="site-footer">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <h3 class="footer-logo">{{ settings.site_name || '我的博客' }}</h3>
-          <p class="footer-desc">{{ settings.site_description || '记录技术、生活与思考' }}</p>
-        </div>
-        <div class="footer-links">
-          <div class="footer-col">
-            <h4 class="footer-col-title">导航</h4>
-            <a href="/" class="footer-link">首页</a>
-            <a href="/articles" class="footer-link">文章</a>
-            <a href="/categories" class="footer-link">分类</a>
-            <a href="/tags" class="footer-link">标签</a>
+      <div class="footer-glass">
+        <div class="footer-main">
+          <div class="footer-brand">
+            <h3 class="footer-logo">{{ settings.site_name || '我的博客' }}</h3>
+            <p class="footer-desc">{{ settings.site_description || '记录技术、生活与思考' }}</p>
+            <div class="footer-social">
+              <a
+                v-for="link in socialLinks.slice(0, 4)"
+                :key="link.id"
+                :href="isWebUrl(link.url) ? link.url : undefined"
+                :target="isWebUrl(link.url) ? '_blank' : undefined"
+                class="social-link"
+                @click.prevent="handleSocialClick(link)"
+              >
+                <component :is="getSocialIcon(link)" :size="16" />
+              </a>
+            </div>
           </div>
-          <div class="footer-col">
-            <h4 class="footer-col-title">联系</h4>
-            <a
-              v-for="link in socialLinks.slice(0, 4)"
-              :key="link.id"
-              :href="isWebUrl(link.url) ? link.url : undefined"
-              :target="isWebUrl(link.url) ? '_blank' : undefined"
-              class="footer-link"
-              @click.prevent="handleSocialClick(link)"
-            >
-              <component :is="getSocialIcon(link)" :size="14" class="footer-link-icon" />
-              {{ link.platform }}
-            </a>
+          <div class="footer-links">
+            <div class="footer-col">
+              <h4 class="footer-col-title">导航</h4>
+              <a href="/" class="footer-link">首页</a>
+              <a href="/articles" class="footer-link">文章</a>
+              <a href="/categories" class="footer-link">分类</a>
+              <a href="/tags" class="footer-link">标签</a>
+            </div>
+            <div class="footer-col">
+              <h4 class="footer-col-title">资源</h4>
+              <a href="/tools" class="footer-link">小工具</a>
+              <a href="/resources" class="footer-link">资源分享</a>
+              <a href="/music" class="footer-link">音乐</a>
+              <a href="/about" class="footer-link">关于</a>
+            </div>
+            <div class="footer-col">
+              <h4 class="footer-col-title">联系</h4>
+              <a
+                v-for="link in socialLinks.slice(0, 4)"
+                :key="link.id"
+                :href="isWebUrl(link.url) ? link.url : undefined"
+                :target="isWebUrl(link.url) ? '_blank' : undefined"
+                class="footer-link"
+                @click.prevent="handleSocialClick(link)"
+              >
+                <component :is="getSocialIcon(link)" :size="14" class="footer-link-icon" />
+                {{ link.platform }}
+              </a>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="footer-bottom">
-        <p class="copyright">© {{ new Date().getFullYear() }} {{ settings.site_name || '我的博客' }}. All rights reserved.</p>
-        <p class="credit">Powered by Vue.js & Express</p>
+        <div class="footer-bottom">
+          <div class="footer-bottom-left">
+            <p class="copyright">© {{ new Date().getFullYear() }} {{ settings.site_name || '我的博客' }}. All rights reserved.</p>
+            <p class="credit">Powered by Vue.js & Express</p>
+          </div>
+          <div class="footer-bottom-right">
+            <p class="icp-info">XICP备XXXXXXXX号-1</p>
+          </div>
+        </div>
       </div>
     </footer>
 
@@ -299,7 +325,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, h } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { marked } from 'marked'
 import { postsApi } from '../api/index.js'
@@ -668,10 +694,12 @@ const goToCategory = (category) => {
 }
 
 let rafId = null
+let resizeRafId = null
 let cachedSidebarHeight = 0
 let cachedRightHeight = 0
 let cachedLayoutTop = 0
 let cachedMaxTranslate = 0
+let lastScrollRecorded = 0
 
 const updateLayoutCache = () => {
   if (!leftSidebarRef.value || !sidebarInnerRef.value || !mainLayoutRef.value) return
@@ -698,6 +726,7 @@ const applySidebarTransform = () => {
   }
 
   const scrollTop = window.scrollY
+  const now = performance.now()
 
   if (scrollTop > cachedLayoutTop - navHeight) {
     const scrollProgress = (scrollTop - cachedLayoutTop + navHeight) / (cachedRightHeight - window.innerHeight + navHeight + 100)
@@ -707,19 +736,29 @@ const applySidebarTransform = () => {
   } else {
     sidebarInner.style.transform = 'translateY(0)'
   }
+
+  lastScrollRecorded = now
 }
 
 const handleScroll = () => {
-  if (rafId) return
+  if (rafId !== null) return
+
   rafId = requestAnimationFrame(() => {
     rafId = null
+    const now = performance.now()
+    if (now - lastScrollRecorded < 16) return
     applySidebarTransform()
   })
 }
 
 const handleResize = () => {
-  updateLayoutCache()
-  applySidebarTransform()
+  if (resizeRafId !== null) return
+
+  resizeRafId = requestAnimationFrame(() => {
+    resizeRafId = null
+    updateLayoutCache()
+    applySidebarTransform()
+  })
 }
 
 onMounted(() => {
@@ -732,11 +771,22 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('resize', handleResize)
-  if (rafId) {
+  if (rafId !== null) {
     cancelAnimationFrame(rafId)
     rafId = null
   }
+  if (resizeRafId !== null) {
+    cancelAnimationFrame(resizeRafId)
+    resizeRafId = null
+  }
 })
+
+watch([() => props.posts, () => props.categories, () => props.tags], () => {
+  nextTick(() => {
+    updateLayoutCache()
+    applySidebarTransform()
+  })
+}, { deep: true })
 
 // 监听路由参数，从仓库返回时自动打开文章
 watch(() => route.query.read, async (slug) => {
@@ -1319,12 +1369,30 @@ watch(() => route.query.read, async (slug) => {
   padding: 0 24px 32px;
 }
 
-.footer-inner {
+.footer-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.footer-main {
   display: flex;
   justify-content: space-between;
   gap: 48px;
-  padding: 48px 0 40px;
-  border-top: 1px solid var(--border-color);
+  padding: 48px 48px 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .footer-brand {
@@ -1332,17 +1400,46 @@ watch(() => route.query.read, async (slug) => {
 }
 
 .footer-logo {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
+  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .footer-desc {
   font-size: 14px;
   color: var(--text-muted);
-  line-height: 1.6;
-  margin: 0;
+  line-height: 1.7;
+  margin: 0 0 20px 0;
+}
+
+.footer-social {
+  display: flex;
+  gap: 12px;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  transition: all 0.25s var(--ease-smooth);
+}
+
+.social-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  transform: translateY(-2px);
 }
 
 .footer-links {
@@ -1353,16 +1450,16 @@ watch(() => route.query.read, async (slug) => {
 .footer-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .footer-col-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
-  margin: 0 0 4px 0;
+  margin: 0 0 8px 0;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .footer-link {
@@ -1371,12 +1468,14 @@ watch(() => route.query.read, async (slug) => {
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: color 0.3s ease;
+  gap: 8px;
+  transition: all 0.25s var(--ease-smooth);
+  padding: 2px 0;
 }
 
 .footer-link:hover {
   color: var(--text-primary);
+  transform: translateX(4px);
 }
 
 .footer-link-icon {
@@ -1388,20 +1487,41 @@ watch(() => route.query.read, async (slug) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0 0;
-  border-top: 1px solid var(--border-color);
+  padding: 24px 48px;
+}
+
+.footer-bottom-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .copyright {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin: 0;
 }
 
 .credit {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--text-subtle);
   margin: 0;
+}
+
+.footer-bottom-right {
+  display: flex;
+  align-items: center;
+}
+
+.icp-info {
+  font-size: 12px;
+  color: var(--text-subtle);
+  margin: 0;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  letter-spacing: 0.3px;
 }
 
 .hitokoto-section {
@@ -1509,19 +1629,29 @@ watch(() => route.query.read, async (slug) => {
     padding: 20px;
   }
 
-  .footer-inner {
+  .footer-main {
     flex-direction: column;
     gap: 32px;
+    padding: 32px 28px 28px;
+  }
+
+  .footer-brand {
+    max-width: 100%;
   }
 
   .footer-links {
-    gap: 48px;
+    gap: 32px;
   }
 
   .footer-bottom {
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
     text-align: center;
+    padding: 20px 28px;
+  }
+
+  .footer-bottom-left {
+    align-items: center;
   }
 
   .hitokoto-section {

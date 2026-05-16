@@ -21,22 +21,26 @@
       :socialLinks="socialLinks"
       :bgImage="bgImage"
       :bgLoaded="bgLoaded"
+      @update:showWelcome="showWelcome = $event"
     />
 
-    <FloatingActions :bg-image="bgImage" />
+    <FloatingActions v-if="!showWelcome" :bg-image="bgImage" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, provide } from 'vue'
 import { settingsApi, categoriesApi, postsApi, tagsApi, backgroundApi } from './api/index.js'
 import FloatingActions from './components/FloatingActions.vue'
 
 const bgImage = ref('')
 const bgLoaded = ref(false)
+const showWelcome = ref(false)
+
+provide('showWelcome', showWelcome)
 
 const settings = ref({
-  site_name: 'ALT的博客',
+  site_name: 'ALT的饭桌会议',
   site_description: '',
   author_name: '',
   author_bio: '',

@@ -4,7 +4,7 @@
       <h1>标签管理</h1>
       <button @click="showModal = true" class="btn btn-primary">添加标签</button>
     </div>
-    
+
     <div class="card">
       <table class="table">
         <thead>
@@ -31,7 +31,7 @@
         </tbody>
       </table>
     </div>
-    
+
     <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
       <div class="modal">
         <h3>{{ editingTag ? '编辑标签' : '添加标签' }}</h3>
@@ -103,7 +103,7 @@ const handleSubmit = async () => {
 
 const handleDelete = async (id) => {
   if (!confirm('确定要删除这个标签吗？')) return
-  
+
   try {
     await tagsApi.delete(id)
     tags.value = tags.value.filter(t => t.id !== id)

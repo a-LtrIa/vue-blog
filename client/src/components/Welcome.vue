@@ -83,7 +83,7 @@ const props = defineProps({
   },
   siteName: {
     type: String,
-    default: 'ALT的博客'
+    default: 'ALT的饭桌会议'
   },
   avatarUrl: String,
   bgLoaded: Boolean

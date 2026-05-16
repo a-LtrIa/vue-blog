@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import Welcome from '../components/Welcome.vue'
 import BlogContent from '../components/BlogContent.vue'
@@ -45,7 +45,8 @@ import GlassNavbar from '../components/GlassNavbar.vue'
 
 const route = useRoute()
 const contentRef = ref(null)
-const showWelcome = ref(false)
+const showWelcome = inject('showWelcome')
+const emit = defineEmits(['update:showWelcome'])
 const WELCOME_PAGE_KEY = 'onWelcomePage'
 const LAST_VISIT_MINUTE_KEY = 'lastVisitMinute'
 
@@ -90,14 +91,17 @@ onMounted(() => {
 
 watch(showWelcome, (val) => {
   sessionStorage.setItem(WELCOME_PAGE_KEY, val ? 'true' : 'false')
+  emit('update:showWelcome', val)
 })
 
 const hideWelcome = () => {
   showWelcome.value = false
+  emit('update:showWelcome', false)
 }
 
 const showWelcomeScreen = () => {
   showWelcome.value = true
+  emit('update:showWelcome', true)
 }
 
 const onWelcomeHidden = () => {
