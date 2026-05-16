@@ -474,7 +474,7 @@ const totalViews = computed(() => {
 const runningTime = ref('')
 
 const updateRunningTime = () => {
-  const startDate = new Date('2024-01-01')
+  const startDate = new Date(new Date().toDateString() + ' 12:00:00')
   const now = new Date()
   const diff = now - startDate
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
