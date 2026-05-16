@@ -151,7 +151,7 @@ const handleCoverUpload = async (e) => {
   if (!file) return
 
   try {
-    const { data } = await uploadApi.uploadImage(file)
+    const { data } = await uploadApi.uploadImage(file, 'cover')
     form.value.cover_image = data.url
   } catch (err) {
     alert('上传失败')

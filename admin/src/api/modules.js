@@ -40,10 +40,10 @@ export const settingsApi = {
 }
 
 export const uploadApi = {
-  uploadImage: (file) => {
+  uploadImage: (file, type = 'default') => {
     const formData = new FormData()
     formData.append('image', file)
-    return api.post('/upload/image', formData, {
+    return api.post(`/upload/image?type=${type}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },

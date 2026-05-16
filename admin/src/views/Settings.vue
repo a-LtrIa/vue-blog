@@ -274,7 +274,7 @@ const handleAvatarUpload = async (e) => {
   if (!file) return
 
   try {
-    const { data } = await uploadApi.uploadImage(file)
+    const { data } = await uploadApi.uploadImage(file, 'avatar')
     settings.value.avatar_url = data.url
   } catch (err) {
     alert('上传失败')

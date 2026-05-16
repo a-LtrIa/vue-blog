@@ -213,7 +213,7 @@ const handleCoverUpload = async (e) => {
   if (!file) return
 
   try {
-    const { data } = await uploadApi.uploadImage(file)
+    const { data } = await uploadApi.uploadImage(file, 'music')
     form.value.cover_url = data.url
   } catch (err) {
     alert('上传封面失败')
