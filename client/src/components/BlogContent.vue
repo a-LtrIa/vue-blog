@@ -304,7 +304,7 @@
             <p class="credit">Powered by Vue.js & Express</p>
           </div>
           <div class="footer-bottom-right">
-            <p class="icp-info">XICP备XXXXXXXX号-1</p>
+            <p class="icp-info">鄂ICP备2026025703号</p>
           </div>
         </div>
       </div>
