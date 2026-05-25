@@ -392,7 +392,7 @@ import { toolsData } from '../data/tools.js'
 import { resourcesData } from '../data/resources.js'
 import { parseDate } from '../utils/date.js'
 import { toolsApi, resourcesApi, announcementsApi } from '../api/index.js'
-import defaultAvatar from '../assets/avatar.jpg'
+import defaultAvatar from '../assets/avatar.png'
 
 const router = useRouter()
 const route = useRoute()

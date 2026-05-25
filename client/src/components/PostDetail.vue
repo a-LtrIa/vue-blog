@@ -65,7 +65,7 @@
 <script setup>
 import { computed } from 'vue'
 import { parseDate } from '../utils/date.js'
-import defaultAvatar from '../assets/avatar.jpg'
+import defaultAvatar from '../assets/avatar.png'
 
 const props = defineProps({
   post: {

@@ -83,7 +83,7 @@ import {
   Mail, Twitter, Video, Camera, Music, Linkedin, BookOpen,
   Heart, Coffee, ExternalLink, Link2, Share2, Send, Phone, MapPin
 } from 'lucide-vue-next'
-import defaultAvatar from '../assets/avatar.jpg'
+import defaultAvatar from '../assets/avatar.png'
 
 const props = defineProps({
   visible: {

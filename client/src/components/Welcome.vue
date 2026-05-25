@@ -75,7 +75,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import defaultAvatar from '../assets/avatar.jpg'
+import defaultAvatar from '../assets/avatar.png'
 
 const props = defineProps({
   backgroundImage: {
