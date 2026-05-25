@@ -75,6 +75,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import defaultAvatar from '../assets/avatar.jpg'
 
 const props = defineProps({
   backgroundImage: {
@@ -91,7 +92,6 @@ const props = defineProps({
 
 const emit = defineEmits(['scroll-down'])
 
-const defaultAvatar = '/src/assets/avatar.jpg'
 const contentLoaded = ref(false)
 const enterBtn = ref(null)
 const canScrollAway = ref(false)

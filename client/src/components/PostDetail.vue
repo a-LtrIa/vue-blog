@@ -65,6 +65,7 @@
 <script setup>
 import { computed } from 'vue'
 import { parseDate } from '../utils/date.js'
+import defaultAvatar from '../assets/avatar.jpg'
 
 const props = defineProps({
   post: {
@@ -74,8 +75,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-const defaultAvatar = '/src/assets/avatar.jpg'
 
 // Mock data for author - in real app, this would come from settings
 const authorName = 'ALT'

@@ -392,6 +392,7 @@ import { toolsData } from '../data/tools.js'
 import { resourcesData } from '../data/resources.js'
 import { parseDate } from '../utils/date.js'
 import { toolsApi, resourcesApi, announcementsApi } from '../api/index.js'
+import defaultAvatar from '../assets/avatar.jpg'
 
 const router = useRouter()
 const route = useRoute()
@@ -405,7 +406,6 @@ const props = defineProps({
   bgImage: String
 })
 
-const defaultAvatar = '/src/assets/avatar.jpg'
 const leftSidebarRef = ref(null)
 const sidebarInnerRef = ref(null)
 const mainLayoutRef = ref(null)

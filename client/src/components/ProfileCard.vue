@@ -83,6 +83,7 @@ import {
   Mail, Twitter, Video, Camera, Music, Linkedin, BookOpen,
   Heart, Coffee, ExternalLink, Link2, Share2, Send, Phone, MapPin
 } from 'lucide-vue-next'
+import defaultAvatar from '../assets/avatar.jpg'
 
 const props = defineProps({
   visible: {
@@ -112,8 +113,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'copy'])
-
-const defaultAvatar = '/src/assets/avatar.jpg'
 
 const totalViews = computed(() => {
   return props.posts.reduce((sum, post) => sum + (post.view_count || 0), 0)
