@@ -40,7 +40,7 @@ const showWelcome = ref(false)
 provide('showWelcome', showWelcome)
 
 const settings = ref({
-  site_name: 'ALT的饭桌会议',
+  site_name: 'ALT的笔记本',
   site_description: '',
   author_name: '',
   author_bio: '',
