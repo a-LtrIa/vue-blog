@@ -1180,7 +1180,7 @@ watch(() => route.query.read, async (slug) => {
 .posts-masonry {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(200px, auto);
+  grid-auto-rows: 280px;
   gap: 20px;
 }
 
@@ -1193,6 +1193,7 @@ watch(() => route.query.read, async (slug) => {
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .post-card:hover {
@@ -1206,12 +1207,13 @@ watch(() => route.query.read, async (slug) => {
   grid-column: span 2;
   grid-row: span 2;
   flex-direction: row;
+  max-height: 100%;
 }
 
 .post-featured .post-image {
   width: 60%;
-  height: auto;
-  min-height: 100%;
+  height: 100%;
+  flex-shrink: 0;
 }
 
 .post-featured .post-content {
@@ -1219,6 +1221,7 @@ watch(() => route.query.read, async (slug) => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow: hidden;
 }
 
 .post-featured .post-title {
@@ -1232,9 +1235,10 @@ watch(() => route.query.read, async (slug) => {
 }
 
 .post-image {
-  height: 160px;
+  height: 140px;
   overflow: hidden;
   position: relative;
+  flex-shrink: 0;
 }
 
 .post-image img {
@@ -1534,12 +1538,14 @@ watch(() => route.query.read, async (slug) => {
 
   .posts-masonry {
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 260px;
   }
 
   .post-featured {
     grid-column: span 2;
     grid-row: span 1;
     flex-direction: column;
+    max-height: none;
   }
 
   .post-featured .post-image,
@@ -1548,8 +1554,8 @@ watch(() => route.query.read, async (slug) => {
   }
 
   .post-featured .post-image {
-    height: 200px;
-    min-height: auto;
+    height: 180px;
+    flex-shrink: 0;
   }
 }
 
@@ -1597,10 +1603,24 @@ watch(() => route.query.read, async (slug) => {
 
   .posts-masonry {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
   }
 
   .post-featured {
     grid-column: span 1;
+    max-height: none;
+  }
+
+  .post-card {
+    height: auto;
+  }
+
+  .post-image {
+    height: 160px;
+  }
+
+  .post-featured .post-image {
+    height: 200px;
   }
 
   .categories-grid {
