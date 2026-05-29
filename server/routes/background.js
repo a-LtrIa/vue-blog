@@ -161,7 +161,12 @@ const fetchAndCacheImages = async () => {
   ensureCacheDir()
 
   const meta = getCachedMeta() || { preserved: [] }
-  const preservedFiles = meta.preserved || []
+  let preservedFiles = meta.preserved || []
+
+  preservedFiles = preservedFiles.filter(filename => {
+    const filepath = join(CACHE_DIR, filename)
+    return existsSync(filepath)
+  })
 
   const existingFiles = readdirSync(CACHE_DIR).filter(f => f !== 'meta.json' && !preservedFiles.includes(f))
   for (const file of existingFiles) {
@@ -296,6 +301,7 @@ router.delete('/:filename', async (req, res) => {
     }
 
     meta.files = meta.files.filter(f => f !== filename)
+    meta.preserved = (meta.preserved || []).filter(f => f !== filename)
     meta.count = meta.files.length
     saveMeta(meta)
 
@@ -491,7 +497,17 @@ router.post('/:filename/unpreserve', async (req, res) => {
 router.get('/preserved', async (req, res) => {
   try {
     const meta = getCachedMeta()
-    const preservedFiles = meta?.preserved || []
+    let preservedFiles = meta?.preserved || []
+
+    preservedFiles = preservedFiles.filter(filename => {
+      const filepath = join(CACHE_DIR, filename)
+      return existsSync(filepath)
+    })
+
+    if (meta && meta.preserved && meta.preserved.length !== preservedFiles.length) {
+      meta.preserved = preservedFiles
+      saveMeta(meta)
+    }
 
     const images = preservedFiles.map(filename => {
       const filepath = join(CACHE_DIR, filename)
