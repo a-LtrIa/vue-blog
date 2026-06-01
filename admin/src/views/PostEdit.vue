@@ -58,6 +58,18 @@
               <option v-for="tag in availableTags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
             </select>
           </div>
+          <div class="tag-create">
+            <input
+              v-model="newTagName"
+              type="text"
+              placeholder="输入新标签名称"
+              @keyup.enter="createTag"
+              class="tag-create-input"
+            />
+            <button type="button" @click="createTag" class="btn btn-secondary btn-sm" :disabled="creatingTag">
+              {{ creatingTag ? '创建中...' : '添加新标签' }}
+            </button>
+          </div>
         </div>
 
         <div class="form-group">
@@ -125,6 +137,8 @@ const form = ref({
 const categories = ref([])
 const allTags = ref([])
 const loading = ref(false)
+const newTagName = ref('')
+const creatingTag = ref(false)
 
 const selectedTags = computed(() => {
   return allTags.value.filter(t => form.value.tags.includes(t.id))
@@ -144,6 +158,28 @@ const addTag = (e) => {
 
 const removeTag = (tagId) => {
   form.value.tags = form.value.tags.filter(id => id !== tagId)
+}
+
+const createTag = async () => {
+  const name = newTagName.value.trim()
+  if (!name) return
+
+  creatingTag.value = true
+  try {
+    const { data } = await tagsApi.create({ name })
+    const newTag = {
+      id: data.id,
+      name: name,
+      slug: name.toLowerCase().replace(/\s+/g, '-')
+    }
+    allTags.value.push(newTag)
+    form.value.tags.push(data.id)
+    newTagName.value = ''
+  } catch (err) {
+    alert(err.response?.data?.error || '创建标签失败')
+  } finally {
+    creatingTag.value = false
+  }
 }
 
 const handleCoverUpload = async (e) => {
@@ -201,3 +237,36 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.tag-create {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag-create-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-hairline, #ddd);
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.tag-create-input:focus {
+  border-color: var(--color-primary, #0066cc);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>
