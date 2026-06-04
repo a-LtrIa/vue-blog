@@ -3,7 +3,10 @@ import api from './index.js'
 export const authApi = {
   login: (data) => api.post('/auth/login', data),
   verify: () => api.get('/auth/verify'),
-  changePassword: (data) => api.post('/auth/change-password', data)
+  changePassword: (data) => api.post('/auth/change-password', data),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  verifyResetToken: (token) => api.get('/auth/verify-reset-token', { params: { token } }),
+  resetPassword: (data) => api.post('/auth/reset-password', data)
 }
 
 export const postsApi = {

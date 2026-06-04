@@ -176,6 +176,16 @@ db.exec(`
     notify_admin INTEGER DEFAULT 1,
     notify_user INTEGER DEFAULT 1
   );
+
+  CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
 `)
 
 // Migration: add post_type and external_url columns for existing databases
@@ -194,6 +204,11 @@ try {
 // Migration: add icon column for categories table
 try {
   db.exec('ALTER TABLE categories ADD COLUMN icon TEXT')
+} catch (e) { /* column already exists */ }
+
+// Migration: add email column for users table
+try {
+  db.exec('ALTER TABLE users ADD COLUMN email TEXT')
 } catch (e) { /* column already exists */ }
 
 // Initialize default data in async IIFE

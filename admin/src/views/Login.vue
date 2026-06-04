@@ -14,6 +14,9 @@
         <button type="submit" class="btn btn-primary" :disabled="loading">
           {{ loading ? '登录中...' : '登录' }}
         </button>
+        <div class="form-footer">
+          <router-link to="/forgot-password" class="forgot-link">忘记密码？</router-link>
+        </div>
         <p v-if="error" class="error-message">{{ error }}</p>
       </form>
     </div>
@@ -36,7 +39,7 @@ const error = ref('')
 const handleLogin = async () => {
   loading.value = true
   error.value = ''
-  
+
   try {
     await authStore.login(username.value, password.value)
     router.push('/')
@@ -47,3 +50,22 @@ const handleLogin = async () => {
   }
 }
 </script>
+
+<style scoped>
+.form-footer {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.forgot-link {
+  color: #667eea;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: #5a6fd6;
+  text-decoration: underline;
+}
+</style>
