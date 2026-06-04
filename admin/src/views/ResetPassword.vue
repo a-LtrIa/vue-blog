@@ -14,7 +14,7 @@
         <div class="error-icon">✕</div>
         <h3>链接无效或已过期</h3>
         <p>该密码重置链接已失效，请重新申请。</p>
-        <router-link to="/forgot-password" class="btn btn-primary" style="margin-top: 20px;">
+        <router-link :to="{ name: 'ForgotPassword' }" class="btn btn-primary" style="margin-top: 20px;">
           重新申请
         </router-link>
       </div>
@@ -24,7 +24,7 @@
         <div class="success-icon">✓</div>
         <h3>密码重置成功</h3>
         <p>您的密码已重置，请使用新密码登录。</p>
-        <router-link to="/login" class="btn btn-primary" style="margin-top: 20px;">
+        <router-link :to="{ name: 'Login' }" class="btn btn-primary" style="margin-top: 20px;">
           去登录
         </router-link>
       </div>

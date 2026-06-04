@@ -90,6 +90,27 @@ router.get('/verify', authMiddleware, (req, res) => {
   res.json({ valid: true, user: req.user })
 })
 
+// 获取当前用户信息
+router.get('/profile', authMiddleware, (req, res) => {
+  const user = db.prepare('SELECT id, username, email, created_at FROM users WHERE id = ?').get(req.user.id)
+  if (!user) {
+    return res.status(404).json({ error: '用户不存在' })
+  }
+  res.json(user)
+})
+
+// 更新用户信息（邮箱）
+router.put('/profile', authMiddleware, (req, res) => {
+  const { email } = req.body
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: '邮箱格式不正确' })
+  }
+
+  db.prepare('UPDATE users SET email = ? WHERE id = ?').run(email || null, req.user.id)
+  res.json({ message: '保存成功' })
+})
+
 // 请求密码重置
 router.post('/forgot-password', async (req, res) => {
   const { username, email } = req.body
@@ -133,7 +154,7 @@ router.post('/forgot-password', async (req, res) => {
   `).run(user.id, token, expiresAt.toISOString())
 
   // 构建重置链接
-  const resetUrl = `${req.headers.origin || 'http://localhost:5173'}/reset-password?token=${token}`
+  const resetUrl = `${req.headers.origin || 'http://localhost:5174'}/admin/reset-password?token=${token}`
 
   // 发送邮件
   const emailResult = await sendPasswordResetEmail(email, resetUrl)

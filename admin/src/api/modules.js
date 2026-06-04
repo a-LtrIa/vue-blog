@@ -6,7 +6,9 @@ export const authApi = {
   changePassword: (data) => api.post('/auth/change-password', data),
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   verifyResetToken: (token) => api.get('/auth/verify-reset-token', { params: { token } }),
-  resetPassword: (data) => api.post('/auth/reset-password', data)
+  resetPassword: (data) => api.post('/auth/reset-password', data),
+  getProfile: () => api.get('/auth/profile'),
+  updateProfile: (data) => api.put('/auth/profile', data)
 }
 
 export const postsApi = {

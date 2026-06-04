@@ -270,17 +270,17 @@
           <div class="footer-links">
             <div class="footer-col">
               <h4 class="footer-col-title">导航</h4>
-              <a href="/" class="footer-link">首页</a>
-              <a href="/articles" class="footer-link">文章</a>
-              <a href="/categories" class="footer-link">分类</a>
-              <a href="/tags" class="footer-link">标签</a>
+              <router-link to="/" class="footer-link">首页</router-link>
+              <router-link to="/articles" class="footer-link">文章</router-link>
+              <router-link to="/articles" class="footer-link">分类</router-link>
+              <router-link to="/articles" class="footer-link">标签</router-link>
             </div>
             <div class="footer-col">
               <h4 class="footer-col-title">资源</h4>
-              <a href="/tools" class="footer-link">小工具</a>
-              <a href="/resources" class="footer-link">资源分享</a>
-              <a href="/music" class="footer-link">音乐</a>
-              <a href="/about" class="footer-link">关于</a>
+              <router-link to="/tools" class="footer-link">小工具</router-link>
+              <router-link to="/resources" class="footer-link">资源分享</router-link>
+              <router-link to="/tools" class="footer-link">音乐</router-link>
+              <router-link to="/articles" class="footer-link">关于</router-link>
             </div>
             <div class="footer-col">
               <h4 class="footer-col-title">联系</h4>

@@ -15,7 +15,7 @@
           {{ loading ? '登录中...' : '登录' }}
         </button>
         <div class="form-footer">
-          <router-link to="/forgot-password" class="forgot-link">忘记密码？</router-link>
+          <router-link :to="{ name: 'ForgotPassword' }" class="forgot-link">忘记密码？</router-link>
         </div>
         <p v-if="error" class="error-message">{{ error }}</p>
       </form>
@@ -42,7 +42,7 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(username.value, password.value)
-    router.push('/')
+    router.push({ name: 'Dashboard' })
   } catch (err) {
     error.value = err.response?.data?.error || '登录失败，请检查用户名和密码'
   } finally {

@@ -36,13 +36,13 @@
         <h3>邮件已发送</h3>
         <p>密码重置链接已发送到您的邮箱，请查收。</p>
         <p class="hint">链接有效期为 1 小时</p>
-        <router-link to="/login" class="btn btn-secondary" style="margin-top: 20px;">
+        <router-link :to="{ name: 'Login' }" class="btn btn-secondary" style="margin-top: 20px;">
           返回登录
         </router-link>
       </div>
 
       <div class="back-link">
-        <router-link to="/login">← 返回登录</router-link>
+        <router-link :to="{ name: 'Login' }">← 返回登录</router-link>
       </div>
     </div>
   </div>

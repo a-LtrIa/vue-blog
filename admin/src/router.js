@@ -154,7 +154,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/admin/'),
   routes
 })
 
@@ -162,9 +162,9 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
   if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
-    next('/login')
+    next({ name: 'Login' })
   } else if (to.path === '/login' && authStore.isAuthenticated) {
-    next('/')
+    next({ name: 'Dashboard' })
   } else {
     next()
   }

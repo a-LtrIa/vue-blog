@@ -320,7 +320,7 @@ const goHome = () => {
 
 const goToPost = (post) => {
   closeSearch()
-  router.push(`/post/${post.slug}`)
+  router.push({ path: '/', query: { read: post.slug, from: route.path } })
 }
 
 const toggleMobileMenu = () => {

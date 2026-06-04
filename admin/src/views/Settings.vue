@@ -84,6 +84,22 @@
 
     <div class="card">
       <div class="card-header">
+        <h3>密保邮箱</h3>
+      </div>
+      <form @submit.prevent="saveSecurityEmail">
+        <div class="form-group">
+          <label>密保邮箱（用于密码找回）</label>
+          <input v-model="securityEmail" type="email" placeholder="请输入您的邮箱地址" required />
+          <p class="form-hint">设置密保邮箱后，您可以通过邮箱找回密码</p>
+        </div>
+        <button type="submit" class="btn btn-primary" :disabled="savingSecurityEmail">
+          {{ savingSecurityEmail ? '保存中...' : '保存密保邮箱' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
         <h3>修改密码</h3>
       </div>
       <form @submit.prevent="changePassword">
@@ -195,6 +211,9 @@ const passwordForm = ref({
   oldPassword: '',
   newPassword: ''
 })
+
+const securityEmail = ref('')
+const savingSecurityEmail = ref(false)
 
 const emailSettings = ref({
   smtp_host: '',
@@ -341,10 +360,32 @@ const changePassword = async () => {
   }
 }
 
+const loadSecurityEmail = async () => {
+  try {
+    const { data } = await authApi.getProfile()
+    securityEmail.value = data.email || ''
+  } catch (err) {
+    console.error('加载密保邮箱失败:', err)
+  }
+}
+
+const saveSecurityEmail = async () => {
+  savingSecurityEmail.value = true
+  try {
+    await authApi.updateProfile({ email: securityEmail.value })
+    alert('密保邮箱保存成功')
+  } catch (err) {
+    alert(err.response?.data?.error || '保存失败')
+  } finally {
+    savingSecurityEmail.value = false
+  }
+}
+
 onMounted(() => {
   loadSettings()
   loadSocialLinks()
   loadEmailSettings()
+  loadSecurityEmail()
 })
 </script>
 
@@ -373,5 +414,12 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   margin-top: 16px;
+}
+
+.form-hint {
+  color: #666;
+  font-size: 13px;
+  margin-top: 6px;
+  margin-bottom: 0;
 }
 </style>
