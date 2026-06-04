@@ -87,8 +87,32 @@
         </div>
 
         <div class="form-group" v-if="form.post_type === 'local'">
-          <label>内容（支持 HTML）</label>
-          <textarea v-model="form.content" rows="20" placeholder="请输入文章内容"></textarea>
+          <div class="content-label-row">
+            <label>内容（支持 Markdown）</label>
+            <div class="view-toggle">
+              <button
+                type="button"
+                :class="['toggle-btn', { active: contentView === 'edit' }]"
+                @click="contentView = 'edit'"
+              >
+                编辑
+              </button>
+              <button
+                type="button"
+                :class="['toggle-btn', { active: contentView === 'preview' }]"
+                @click="contentView = 'preview'"
+              >
+                预览
+              </button>
+            </div>
+          </div>
+          <textarea
+            v-show="contentView === 'edit'"
+            v-model="form.content"
+            rows="20"
+            placeholder="请输入 Markdown 格式的文章内容"
+          ></textarea>
+          <div v-show="contentView === 'preview'" class="markdown-preview" v-html="renderedContent"></div>
         </div>
 
         <div class="form-row">
@@ -114,6 +138,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { marked } from 'marked'
 import { postsApi, categoriesApi, tagsApi, uploadApi } from '../api/modules.js'
 
 const route = useRoute()
@@ -139,6 +164,7 @@ const allTags = ref([])
 const loading = ref(false)
 const newTagName = ref('')
 const creatingTag = ref(false)
+const contentView = ref('edit')
 
 const selectedTags = computed(() => {
   return allTags.value.filter(t => form.value.tags.includes(t.id))
@@ -146,6 +172,11 @@ const selectedTags = computed(() => {
 
 const availableTags = computed(() => {
   return allTags.value.filter(t => !form.value.tags.includes(t.id))
+})
+
+const renderedContent = computed(() => {
+  if (!form.value.content) return '<p style="color: #999;">暂无内容</p>'
+  return marked.parse(form.value.content)
 })
 
 const addTag = (e) => {
@@ -268,5 +299,155 @@ onMounted(async () => {
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.content-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-hairline, #ddd);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 6px 16px;
+  border: none;
+  background: var(--color-canvas, #fff);
+  color: var(--color-ink-muted-80, #666);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background: var(--color-divider-soft, #f5f5f5);
+}
+
+.toggle-btn.active {
+  background: var(--color-primary, #0066cc);
+  color: white;
+}
+
+.toggle-btn:first-child {
+  border-right: 1px solid var(--color-hairline, #ddd);
+}
+
+.markdown-preview {
+  min-height: 400px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--color-hairline, #ddd);
+  border-radius: 4px;
+  background: var(--color-canvas, #fff);
+  line-height: 1.8;
+}
+
+.markdown-preview :deep(h1) {
+  font-size: 1.8em;
+  margin: 0.8em 0 0.4em;
+  border-bottom: 1px solid var(--color-hairline, #eee);
+  padding-bottom: 0.3em;
+}
+
+.markdown-preview :deep(h2) {
+  font-size: 1.5em;
+  margin: 0.8em 0 0.4em;
+  border-bottom: 1px solid var(--color-hairline, #eee);
+  padding-bottom: 0.3em;
+}
+
+.markdown-preview :deep(h3) {
+  font-size: 1.25em;
+  margin: 0.6em 0 0.3em;
+}
+
+.markdown-preview :deep(p) {
+  margin: 0.6em 0;
+}
+
+.markdown-preview :deep(ul),
+.markdown-preview :deep(ol) {
+  margin: 0.6em 0;
+  padding-left: 2em;
+}
+
+.markdown-preview :deep(li) {
+  margin: 0.3em 0;
+}
+
+.markdown-preview :deep(code) {
+  background: var(--color-canvas-parchment, #f5f5f5);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.markdown-preview :deep(pre) {
+  background: var(--color-canvas-parchment, #f5f5f5);
+  padding: 16px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+
+.markdown-preview :deep(pre code) {
+  background: none;
+  padding: 0;
+}
+
+.markdown-preview :deep(blockquote) {
+  border-left: 4px solid var(--color-primary, #0066cc);
+  margin: 0.8em 0;
+  padding: 0.5em 1em;
+  background: var(--color-canvas-parchment, #f9f9f9);
+  color: var(--color-ink-muted-80, #555);
+}
+
+.markdown-preview :deep(a) {
+  color: var(--color-primary, #0066cc);
+  text-decoration: none;
+}
+
+.markdown-preview :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.markdown-preview :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.markdown-preview :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+}
+
+.markdown-preview :deep(th),
+.markdown-preview :deep(td) {
+  border: 1px solid var(--color-hairline, #ddd);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-preview :deep(th) {
+  background: var(--color-canvas-parchment, #f5f5f5);
+  font-weight: 600;
+}
+
+.markdown-preview :deep(hr) {
+  border: none;
+  border-top: 1px solid var(--color-hairline, #ddd);
+  margin: 1.5em 0;
 }
 </style>

@@ -159,7 +159,7 @@
                 ></textarea>
               </div>
               <div class="feedback-rate-limit">
-                <span>每 IP 每分钟可留言 1 次，每小时最多 100 条</span>
+                <span>每 IP 每分钟可留言 1 次</span>
               </div>
               <button
                 class="btn-feedback-submit"

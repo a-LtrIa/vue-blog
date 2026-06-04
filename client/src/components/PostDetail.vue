@@ -64,6 +64,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { marked } from 'marked'
 import { parseDate } from '../utils/date.js'
 import defaultAvatar from '../assets/avatar.png'
 
@@ -98,24 +99,8 @@ const readTime = computed(() => {
 })
 
 const renderedContent = computed(() => {
-  // Simple markdown-like rendering
   if (!props.post.content) return ''
-  let content = props.post.content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br>')
-    .replace(/#{3}\s+(.+)/g, '<h3>$1</h3>')
-    .replace(/#{2}\s+(.+)/g, '<h2>$1</h2>')
-    .replace(/#{1}\s+(.+)/g, '<h1>$1</h1>')
-    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-
-  return `<p>${content}</p>`
+  return marked.parse(props.post.content)
 })
 
 const closePost = () => {
