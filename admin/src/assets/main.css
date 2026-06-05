@@ -267,15 +267,30 @@ body {
 }
 
 .sidebar-nav {
-  padding: var(--spacing-md) 0;
+  padding: var(--spacing-sm) 0;
   flex: 1;
+  overflow-y: auto;
+}
+
+.nav-group {
+  margin-bottom: var(--spacing-xs);
+}
+
+.nav-group-title {
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs);
+  font-family: var(--font-text);
+  font-size: var(--font-size-fine-print);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-family: var(--font-text);

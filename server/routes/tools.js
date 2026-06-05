@@ -32,6 +32,24 @@ router.get('/', (req, res) => {
   res.json(normalizeDatesArray(tools))
 })
 
+router.get('/stats', (req, res) => {
+  const totalRow = db.prepare('SELECT COUNT(*) as total FROM tools').get()
+  const publishedRow = db.prepare("SELECT COUNT(*) as total FROM tools WHERE status = 'published'").get()
+
+  const categoryStats = db.prepare(`
+    SELECT category, COUNT(*) as count
+    FROM tools
+    GROUP BY category
+    ORDER BY count DESC
+  `).all()
+
+  res.json({
+    totalTools: totalRow.total,
+    publishedTools: publishedRow.total,
+    categoryStats
+  })
+})
+
 router.get('/:id', (req, res) => {
   const tool = db.prepare('SELECT * FROM tools WHERE id = ?').get(req.params.id)
 

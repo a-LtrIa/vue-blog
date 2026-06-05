@@ -75,6 +75,28 @@ router.get('/', (req, res) => {
   })
 })
 
+router.get('/stats', (req, res) => {
+  const totalViewsRow = db.prepare('SELECT COALESCE(SUM(view_count), 0) as total FROM posts').get()
+  const totalPostsRow = db.prepare('SELECT COUNT(*) as total FROM posts').get()
+  const publishedRow = db.prepare("SELECT COUNT(*) as total FROM posts WHERE status = 'published'").get()
+  const draftRow = db.prepare("SELECT COUNT(*) as total FROM posts WHERE status = 'draft'").get()
+
+  const topPosts = db.prepare(`
+    SELECT id, title, slug, view_count, status
+    FROM posts
+    ORDER BY view_count DESC
+    LIMIT 5
+  `).all()
+
+  res.json({
+    totalViews: totalViewsRow.total,
+    totalPosts: totalPostsRow.total,
+    publishedPosts: publishedRow.total,
+    draftPosts: draftRow.total,
+    topPosts: normalizeDatesArray(topPosts)
+  })
+})
+
 router.get('/:id', (req, res) => {
   const post = db.prepare(`
     SELECT p.*, c.name as category_name

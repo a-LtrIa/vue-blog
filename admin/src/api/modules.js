@@ -137,3 +137,15 @@ export const feedbackApi = {
   reply: (id, data) => api.put(`/feedback/${id}/reply`, data),
   delete: (id) => api.delete(`/feedback/${id}`)
 }
+
+export const visitsApi = {
+  getStats: () => api.get('/visits/stats')
+}
+
+export const postsStatsApi = {
+  get: () => api.get('/posts/stats')
+}
+
+export const toolsStatsApi = {
+  get: () => api.get('/tools/stats')
+}
