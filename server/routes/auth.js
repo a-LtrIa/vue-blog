@@ -8,7 +8,7 @@ import { sendEmail } from '../services/email.js'
 const router = express.Router()
 
 // 生成随机令牌
-const generateToken = () => {
+const generateResetToken = () => {
   return crypto.randomBytes(32).toString('hex')
 }
 
@@ -144,7 +144,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 
   // 生成重置令牌
-  const token = generateToken()
+  const token = generateResetToken()
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1小时后过期
 
   // 保存令牌到数据库
