@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="page-header">
-      <h1>喵喵小工具</h1>
+      <h1>小工具</h1>
       <router-link to="/tools/new" class="btn btn-primary">添加工具</router-link>
     </div>
 

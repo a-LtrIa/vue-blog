@@ -61,7 +61,7 @@
                   @click.prevent="navigate('/tools')"
                 >
                   <Wrench :size="15" />
-                  <span>妙妙工具</span>
+                  <span>小工具</span>
                 </a>
                 <a
                   href="/resources"
@@ -128,7 +128,7 @@
             @click.prevent="navigate('/tools')"
           >
             <Wrench :size="18" class="mobile-link-icon" />
-            <span class="mobile-link-text">妙妙工具</span>
+            <span class="mobile-link-text">工具</span>
           </a>
           <a
             href="/resources"

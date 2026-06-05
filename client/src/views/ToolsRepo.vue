@@ -7,7 +7,7 @@
           <span>返回主页</span>
         </button>
         <div class="repo-title-area">
-          <h1 class="repo-title">妙妙工具</h1>
+          <h1 class="repo-title">小工具</h1>
           <p class="repo-subtitle">我做的实用小工具合集</p>
         </div>
       </header>

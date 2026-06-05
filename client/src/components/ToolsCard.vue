@@ -3,7 +3,7 @@
     <div class="section-header">
       <h3 class="section-title">
         <span class="title-dot"></span>
-        妙妙工具
+        小工具
       </h3>
       <router-link to="/tools" class="view-all">查看全部 →</router-link>
     </div>

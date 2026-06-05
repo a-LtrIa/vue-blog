@@ -31,7 +31,7 @@
         <div class="nav-group">
           <div class="nav-group-title">工具箱</div>
           <router-link to="/tools" class="nav-item" :class="{ active: $route.path.startsWith('/tools') }">
-            🛠️ 喵喵小工具
+            🛠️ 小工具
           </router-link>
           <router-link to="/resources" class="nav-item" :class="{ active: $route.path.startsWith('/resources') }">
             📦 资源分享
