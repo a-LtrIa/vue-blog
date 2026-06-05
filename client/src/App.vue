@@ -76,7 +76,7 @@ const fetchData = async () => {
       settingsApi.getAll(),
       settingsApi.getSocialLinks(),
       categoriesApi.getAll(),
-      postsApi.getAll({ status: 'published', limit: 20 }),
+      postsApi.getAll({ status: 'published', limit: 3 }),
       tagsApi.getAll()
     ])
 
