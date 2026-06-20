@@ -21,7 +21,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      // 使用 window.location.href 做全量跳转，确保清除所有前端状态
+      // 注意：admin 部署在 /admin/ 子路径下，必须跳转到 /admin/login
+      window.location.href = '/admin/login'
     }
     return Promise.reject(error)
   }

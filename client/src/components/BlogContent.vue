@@ -664,7 +664,7 @@ const viewPost = async (post, fromPath = '/articles') => {
     window.open(post.external_url, '_blank')
     return
   }
-  backTarget.value = fromPath
+  backTarget.value = fromPath || '/articles'
   selectedPost.value = post
   isLoadingPost.value = true
   try {
@@ -792,7 +792,7 @@ watch([() => props.posts, () => props.categories, () => props.tags], () => {
 watch(() => route.query.read, async (slug) => {
   if (slug && typeof slug === 'string') {
     const from = route.query.from
-    const fromPath = typeof from === 'string' ? from : '/articles'
+    const fromPath = typeof from === 'string' && from ? from : '/articles'
     const post = props.posts.find(p => p.slug === slug)
     if (post) {
       await viewPost(post, fromPath)
