@@ -57,7 +57,7 @@ defineProps({
   }
 })
 
-const HITOKOTO_API = 'https://hitokoto.yealqp.cn/?encode=json&charset=utf-8'
+const HITOKOTO_API = 'https://v1.hitokoto.cn/?encode=json&charset=utf-8'
 
 const hitokoto = ref(null)
 const loading = ref(false)
